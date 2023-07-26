@@ -136,7 +136,7 @@ pub struct MarketBooksItemData {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeOrdersPending {
-    pub inst_type: String,
+    pub inst_type: InstType,
     pub inst_id: String,
     pub tgt_ccy: String,
     pub ccy: String,
@@ -146,10 +146,10 @@ pub struct TradeOrdersPending {
     pub px: String,
     pub sz: String,
     pub pnl: String,
-    pub ord_type: String,
-    pub side: String,
-    pub pos_side: String,
-    pub td_mode: String,
+    pub ord_type: OrderType,
+    pub side: TradeSide,
+    pub pos_side: PositionSide,
+    pub td_mode: TradeMode,
     pub acc_fill_sz: String,
 
     pub fill_px: String,
@@ -157,13 +157,13 @@ pub struct TradeOrdersPending {
     pub fill_sz: String,
     pub fill_time: String,
     pub avg_px: String,
-    pub state: String,
+    pub state: OrderState,
 
     pub lever: String,
     pub tp_trigger_px: String,
-    pub tp_trigger_px_type: String,
+    pub tp_trigger_px_type: TpTriggerPxType,
     pub sl_trigger_px: String,
-    pub sl_trigger_px_type: String,
+    pub sl_trigger_px_type: TpTriggerPxType,
 
     pub sl_ord_px: String,
     pub tp_ord_px: String,
@@ -173,6 +173,9 @@ pub struct TradeOrdersPending {
     pub source: String,
     pub rebate: String,
     pub category: String,
+
+    pub stp_id: String,
+    pub stp_mode: StopMode,
 
     pub reduce_only: String,
     pub quick_mgn_type: String,
@@ -336,6 +339,14 @@ pub enum OrderState {
     Live,
     #[serde(rename="partially_filled")]
     PartiallyFilled,
+    #[serde(rename="filled")]
+    Filled,
+    /// 做市商保护机制导致的自动撤单
+    #[serde(rename="mmp_canceled")]
+    MmpCanceled,
+    /// 撤单成功
+    #[serde(rename="canceled")]
+    Canceled,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
