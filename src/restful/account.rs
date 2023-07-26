@@ -3,10 +3,23 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 
 use crate::apikey::OkxClient;
+use crate::restful::models::AccountBalance;
 
 use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverage, RestApi};
 
 impl OkxClient {
+    pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<RestApi<AccountBalance>> {
+        //  //api/v5/account/balance
+        let mut params: BTreeMap<String, String> = BTreeMap::new();
+        if let Some(val) = ccy_list {
+            params.insert("ccy".into(), val.join(","));
+        }
+
+        Ok(self
+            .get::<RestApi<AccountBalance>>("/api/v5/account/balance", &params)
+            .await?)
+    }
+
     // 检查仓位
     // GET /api/v5/account/positions
     // 查看持仓信息
@@ -83,6 +96,7 @@ impl OkxClient {
             .post::<RestApi<AccountSetLeverage>>("/api/v5/account/set-leverage", &params)
             .await?)
     }
+
     // 查看历史持仓信息
     // 获取最近3个月有更新的仓位信息，按照仓位更新时间倒序排列。
     // GET /api/v5/account/positions-history

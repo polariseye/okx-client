@@ -1,10 +1,12 @@
 use std::collections::BTreeMap;
+use std::fmt::Debug;
 
 use anyhow::Result;
 
 use http::{HeaderMap, HeaderValue};
 use ring::hmac;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use crate::apikey::OkxClient;
 
@@ -80,7 +82,7 @@ impl OkxClient {
     pub async fn post<T>(
         &self,
         request_path: &str,
-        parameters: &BTreeMap<String, String>,
+        parameters: impl Serialize+ Debug,
     ) -> Result<T>
     where
         T: DeserializeOwned + std::fmt::Debug,
