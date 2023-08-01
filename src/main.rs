@@ -25,7 +25,7 @@ async fn main() {
         "wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999").await;
     account_obj.account_subscribe().await;
     account_obj.order_subscribe(InstType::Spot).await;
-    tokio::time::sleep(Duration::from_secs(20)).await;
+    tokio::time::sleep(Duration::from_secs(60)).await;
 }
 
 struct TestHandler {}

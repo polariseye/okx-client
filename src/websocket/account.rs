@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use async_trait::async_trait;
 use http::Method;
-use log::error;
+use log::{debug, error};
 use once_cell::sync::OnceCell;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
@@ -171,6 +171,7 @@ impl <THandler: AccountHandler + 'static> Handler for AccountWebsocket<THandler>
     }
 
     async fn handle_response(&self, resp: EventResponse) {
+        debug!("receive. code:{} msg:{}", &resp.code, &resp.msg);
         if resp.code != "0" {
             error!("receive error. code:{} msg:{}", &resp.code, &resp.msg);
             return;
