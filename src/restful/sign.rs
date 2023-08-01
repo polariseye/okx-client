@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use anyhow::Result;
+use chrono::Utc;
 
 use http::{HeaderMap, HeaderValue};
 use ring::hmac;

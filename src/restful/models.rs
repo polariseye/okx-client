@@ -486,7 +486,7 @@ impl OrderRequestInfo {
 }
 
 /// 产品类型
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug, Hash)]
 pub enum InstType {
     /// 币币
     #[serde(rename="SPOT")]
@@ -503,6 +503,9 @@ pub enum InstType {
     /// 期权
     #[serde(rename="OPTION")]
     Option,
+    /// 所有
+    #[serde(rename="ANY")]
+    Any,
 }
 
 // 获取订单信息

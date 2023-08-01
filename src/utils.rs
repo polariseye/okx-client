@@ -13,8 +13,9 @@ pub async fn get_send_time() -> String {
     str_date
 }
 
+// 单位: 毫秒
 pub fn get_unix() -> i64 {
-    time::OffsetDateTime::now_utc().unix_timestamp()
+    (get_unix_nano()/1000000).into()
 }
 
 pub fn get_unix_nano() -> i128 {

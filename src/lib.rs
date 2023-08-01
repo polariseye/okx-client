@@ -1,3 +1,5 @@
+extern crate core;
+
 pub mod apikey;
 pub mod models;
 pub mod restful;
