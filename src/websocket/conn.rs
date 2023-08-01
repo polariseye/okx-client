@@ -35,7 +35,11 @@ pub struct WebsocketConn<THandler> {
     remote_url: String,
     send_chan: Sender<OkxMessage>,
     state: RwLock<ConnState>,
-    last_pong_time: AtomicI64,
+}
+
+enum PongMessage {
+    Close,
+    Pong,
 }
 
 impl<THandler: Handler + 'static> WebsocketConn<THandler> {
@@ -50,7 +54,6 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
             remote_url: remote_url.into(),
             send_chan: send_sender,
             state: RwLock::new(ConnState::Connecting),
-            last_pong_time: AtomicI64::new(0),
         });
 
         let cloned = result.clone();
@@ -88,12 +91,20 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
 
             // 开启处理协程
             let sender_conn = conn_obj.clone();
-            sender_conn.last_pong_time.store(utils::get_unix(),  Ordering::SeqCst);
-            let is_closed = Arc::new(AtomicBool::new(false));
+            let (pong_sender, pong_receiver) = tokio::sync::mpsc::channel::<PongMessage>(16);
             tokio::spawn(async move {
-                sender_conn.receive_tokio(receiver).await;
+                sender_conn.receive_tokio(receiver, pong_sender).await;
             });
 
+            // 清空消息队列, 因为这些消息是之前的老消息。
+            loop {
+                if send_receiver.try_recv().is_err() {
+                    break
+                }
+            }
+
+            // 开启消息发送逻辑
+            conn_obj.set_state(ConnState::Connected);
             let on_conn_handle_conn = conn_obj.clone();
             let handler = on_conn_handle_conn.handler();
             if handler.is_none() {
@@ -108,9 +119,8 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                 }
             });
 
-            conn_obj.set_state(ConnState::Connected);
             let is_close_by_user = conn_obj
-                .send_tokio(&mut sender, &mut send_receiver)
+                .send_tokio(&mut sender, &mut send_receiver, pong_receiver)
                 .await;
             let _ = sender.close().await;
             let _ = receive_wait_handle.await;
@@ -135,12 +145,15 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
         send_receiver.close();
     }
 
+    // 返回true: 退出重连, 返回false: 进行重连
     async fn send_tokio(
         &self,
         sender: &mut SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
         send_receiver: &mut Receiver<OkxMessage>,
+        mut pong_receiver: Receiver<PongMessage>,
     ) -> bool {
         let mut ticker = tokio::time::interval(Duration::from_secs(5));
+        let mut last_pong_time = utils::get_unix();
 
         loop {
             select! {
@@ -169,6 +182,24 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                         }
                     }
                 },
+                item = pong_receiver.recv() => {
+                    match item {
+                        Some(item) => {
+                            match item {
+                                PongMessage::Pong => {
+                                    last_pong_time = utils::get_unix();
+                                },
+                                PongMessage::Close => {
+                                    return false;
+                                }
+                            }
+                        },
+                        None => {
+                            info!("pong receiver closed");
+                            return false;
+                        }
+                    }
+                }
                 _ = ticker.tick() => {
                     if let Err(err) = sender.send(Message::Text("ping".to_string())).await {
                         warn!("send message error:{}", err.to_string());
@@ -177,7 +208,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                         }
                     }
                     let now = chrono::Utc::now().timestamp();
-                    if now > self.last_pong_time.load(Ordering::SeqCst) +30*1000 {
+                    if now > last_pong_time+30*1000 {
                         // 接收pong超时
                         return false;
                     }
@@ -211,8 +242,8 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
     async fn receive_tokio(
         &self,
         mut receiver: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
+        mut pong_sender: Sender<PongMessage>,
     ) {
-
         loop {
             select! {
                 message = receiver.next() => {
@@ -223,7 +254,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                                     Message::Text(val) => {
                                         if val == "pong" {
                                             // pong消息处理
-                                            self.last_pong_time.store(utils::get_unix(), Ordering::SeqCst);
+                                            let _ = pong_sender.send(PongMessage::Pong).await;
                                         } else {
                                             if let Err(err) = self.handle_message(val).await {
                                                 error!("handle message error. {}", err.to_string());
@@ -234,6 +265,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
 
                                     },
                                     Message::Close(val) => {
+                                        let _ = pong_sender.send(PongMessage::Close).await;
                                         return;
                                     },
                                     _ => {
@@ -243,6 +275,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                             },
                             Err(err) => {
                                 warn!("receive_tokio error:{}", err.to_string());
+                                let _ = pong_sender.send(PongMessage::Close).await;
                                 return;
                             }
                         }

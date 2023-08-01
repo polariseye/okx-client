@@ -15,7 +15,7 @@ pub async fn get_send_time() -> String {
 
 // 单位: 毫秒
 pub fn get_unix() -> i64 {
-    (get_unix_nano()/1000000).into()
+    (get_unix_nano()/1000000i128) as i64
 }
 
 pub fn get_unix_nano() -> i128 {

@@ -14,8 +14,8 @@ mod websocket;
 async fn main() {
     simple_logger::SimpleLogger::new()
         .with_level(LevelFilter::Debug)
-        .with_module_level("tungstenite",LevelFilter::Debug)
-        .with_module_level("tokio_tungstenite",LevelFilter::Debug).init().unwrap();
+        .with_module_level("tungstenite",LevelFilter::Error)
+        .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
     let account_obj = websocket::AccountWebsocket::start(TestHandler{}, "a462e3ed-6866-4ed1-b8e5-8d59126a2a51", "B03846A56AEC13A169E3E4C67F11895F", "wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999").await;
     account_obj.account_subscribe().await;
