@@ -17,7 +17,12 @@ async fn main() {
         .with_module_level("tungstenite",LevelFilter::Error)
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
-    let account_obj = websocket::AccountWebsocket::start(TestHandler{}, "a462e3ed-6866-4ed1-b8e5-8d59126a2a51", "B03846A56AEC13A169E3E4C67F11895F", "wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999").await;
+    let account_obj = websocket::AccountWebsocket::start(
+        TestHandler{},
+        "a462e3ed-6866-4ed1-b8e5-8d59126a2a51",
+        "B03846A56AEC13A169E3E4C67F11895F",
+        "H7ZubBD9FAAffhR!",
+        "wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999").await;
     account_obj.account_subscribe().await;
     account_obj.order_subscribe(InstType::Spot).await;
     tokio::time::sleep(Duration::from_secs(20)).await;

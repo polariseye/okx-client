@@ -14,6 +14,7 @@ use crate::websocket::conn::{EventResponse, Handler, WebsocketConn, WebsocketReq
 pub struct AccountWebsocket<THandler> {
     api_key: String,
     secret_key: String,
+    passphrase: String,
     conn: OnceCell<Arc<WebsocketConn<AccountWebsocket<THandler>>>>,
     handler: THandler,
     is_account_subscribed: AtomicBool,
@@ -21,10 +22,11 @@ pub struct AccountWebsocket<THandler> {
 }
 
 impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
-    pub async fn start(handler: THandler, api_key: &str, secret_key: &str, url: &str) -> Arc<Self> {
+    pub async fn start(handler: THandler, api_key: &str, secret_key: &str, passphrase: &str, url: &str) -> Arc<Self> {
         let result = Arc::new(Self {
             api_key: api_key.to_string(),
             secret_key: secret_key.to_string(),
+            passphrase: passphrase.to_string(),
             conn: OnceCell::new(),
             handler,
             is_account_subscribed: Default::default(),
@@ -65,7 +67,7 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
 
         let mut req = Request {
             api_key: self.api_key.to_string(),
-            passphrase: self.secret_key.to_string(),
+            passphrase: self.passphrase.to_string(),
             timestamp: self.get_timestamp().to_string(),
             sign: "".to_string(),
         };
