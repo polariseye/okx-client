@@ -1,5 +1,6 @@
+use std::collections::BTreeMap;
 use std::ops::Deref;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use async_trait::async_trait;
 use http::Method;
@@ -11,17 +12,17 @@ use crate::restful::models::InstType;
 use crate::utils;
 use crate::websocket::conn::{EventResponse, Handler, WebsocketConn, WebsocketRequest};
 
-pub struct AccountWebsocket<THandler> {
+pub struct AccountWebsocket {
     api_key: String,
     secret_key: String,
     passphrase: String,
-    conn: OnceCell<Arc<WebsocketConn<AccountWebsocket<THandler>>>>,
-    handler: THandler,
+    conn: OnceCell<Arc<WebsocketConn<AccountWebsocket>>>,
+    handler: RwLock<Arc<BTreeMap<String, Arc<Box<dyn AccountHandler>>>>>,
     is_account_subscribed: AtomicBool,
     order_subscribed: Mutex<Vec<InstType>>,
 }
 
-impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
+impl AccountWebsocket {
     pub async fn start(handler: THandler, api_key: &str, secret_key: &str, passphrase: &str, url: &str) -> Arc<Self> {
         let result = Arc::new(Self {
             api_key: api_key.to_string(),
@@ -40,8 +41,37 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
         result
     }
 
-    pub fn conn(&self) -> Arc<WebsocketConn<AccountWebsocket<THandler>>>{
+    pub fn conn(&self) -> Arc<WebsocketConn<AccountWebsocket>>{
         self.conn.get().unwrap().clone()
+    }
+
+    pub fn register(&self, handler: impl AccountHandler+'static){
+        let mut writer =  self.handler.write().unwrap();
+        let id = handler.id();
+        if let Some(_val) = writer.get(&id) {
+            panic!("repeated handler register:{}", id.clone());
+        }
+
+        let mut cloned:BTreeMap<String, Arc<Box<dyn AccountHandler>>> = writer.as_ref().clone();
+        cloned.insert(id, Arc::newe(Box::new(handler)));
+
+        *writer = Arc::new(cloned);
+    }
+
+    pub fn unregister(&self, id: &str) {
+        let mut writer =  self.handler.write().unwrap();
+        if writer.get(id).is_none() {
+            return;
+        }
+
+        let mut cloned:BTreeMap<String, Arc<Box<dyn AccountHandler>>> = writer.as_ref().clone();
+        cloned.remove(id);
+
+        *writer = Arc::new(cloned);
+    }
+
+    fn handlers(&self) -> Arc<BTreeMap<String, Arc<Box<dyn AccountHandler>>>>{
+        self.handler.read().unwrap().clone()
     }
 
     fn get_timestamp(&self) -> i64 {
@@ -81,6 +111,9 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
             return;
         }
 
+        self.account_subscribe_detail().await
+    }
+    async fn account_subscribe_detail(&self) {
         #[derive(Serialize)]
         struct Request {
             pub channel: String,
@@ -98,6 +131,9 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
             return;
         }
 
+        self.account_unsubscribe_detail().await;
+    }
+    async fn account_unsubscribe_detail(&self) {
         #[derive(Serialize)]
         struct Request {
             pub channel: String,
@@ -119,6 +155,9 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
             writer.push(inst_type.clone());
         }
 
+        self.order_subscribe_detail(inst_type).await
+    }
+    async fn order_subscribe_detail(&self, inst_type: InstType) {
         let req = OrderSubscribeArg {
             channel: "orders".to_string(),
             inst_type,
@@ -130,6 +169,19 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
     }
 
     pub async fn order_unsubscribe(&self, inst_type: InstType){
+        {
+            let mut writer = self.order_subscribed.lock().unwrap();
+            for (index, item) in writer.deref().iter().enumerate() {
+                if *item == inst_type {
+                    writer.remove(index);
+                    break
+                }
+            }
+        }
+
+        self.order_unsubscribe_detail(inst_type)
+    }
+    async fn order_unsubscribe_detail(&self, inst_type: InstType){
         {
             let mut writer = self.order_subscribed.lock().unwrap();
             for (index, item) in writer.deref().iter().enumerate() {
@@ -152,39 +204,79 @@ impl <THandler: AccountHandler+'static> AccountWebsocket<THandler> {
 }
 
 #[async_trait]
-impl <THandler: AccountHandler + 'static> Handler for AccountWebsocket<THandler> {
+impl Handler for AccountWebsocket {
     async fn on_connected(&self) {
         self.login().await;
 
         if self.is_account_subscribed.load(Ordering::SeqCst){
-            self.account_subscribe().await;
+            self.account_subscribe_detail().await;
         }
 
         let order_subscribe_list = {self.order_subscribed.lock().unwrap().clone()};
         for item in order_subscribe_list {
-            self.order_subscribe(item).await;
+            self.order_subscribe_detail(item).await;
+        }
+
+        for item in self.handlers().values() {
+            item.on_connected().await;
         }
     }
 
     async fn on_disconnected(&self) {
-
+        for item in self.handlers().values() {
+            item.on_disconnected().await;
+        }
     }
 
     async fn handle_response(&self, resp: EventResponse) {
+        let handlers = self.handlers();
+        for item in  handlers.values() {
+            item.handle_response(&resp).await;
+        }
+
         debug!("receive. code:{} msg:{}", &resp.code, &resp.msg);
         if resp.code != "0" {
             error!("receive error. code:{} msg:{}", &resp.code, &resp.msg);
             return;
         }
-        match resp.event.as_str() {
-            "subscribe" => {
-
+        let channel;
+        if let Some(val) = resp.channel() {
+            channel = val;
+        } else {
+            return;
+        }
+        match channel.as_str() {
+            "account" => {
+                if let Some(data) = resp.data {
+                    match serde_json::from_value(data) {
+                        Ok(event_data) => {
+                            for item in handlers.values() {
+                                item.account_event(&event_data).await;
+                            }
+                        }
+                        Err(err) => {
+                            error!("unmarshal account data error:{}", err.to_string());
+                        }
+                    }
+                } else {
+                    debug!("receive account event. but have no data");
+                }
             },
-            "unsubscribe" => {
-
-            },
-            "error" => {
-
+            "orders" => {
+                if let Some(data) = resp.data {
+                    match serde_json::from_value(data) {
+                        Ok(event_data) => {
+                            for item in handlers.values() {
+                                item.order_event(&event_data).await;
+                            }
+                        }
+                        Err(err) => {
+                            error!("unmarshal order data error:{}", err.to_string());
+                        }
+                    }
+                } else {
+                    debug!("receive order event. but have no data");
+                }
             },
             _ => {
             }
@@ -381,7 +473,12 @@ pub struct OrderEvent {
 }
 
 #[async_trait]
+#[allow(unused)]
 pub trait AccountHandler: Send + Sync {
-    async fn account_event(&self, events: Vec<AccountEvent>);
-    async fn order_event(&self, events: Vec<OrderEvent>);
+    fn id(&self) -> String;
+    async fn account_event(&self, events: &Vec<AccountEvent>){}
+    async fn order_event(&self, events: &Vec<OrderEvent>){}
+    async fn on_connected(&self){}
+    async fn on_disconnected(&self){}
+    async fn handle_response(&self, resp: &EventResponse){}
 }

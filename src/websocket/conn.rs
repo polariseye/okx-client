@@ -363,9 +363,25 @@ pub struct EventResponse {
     pub arg: Option<serde_json::Value>,
     pub data: Option<serde_json::Value>,
     #[serde(default = "String::default")]
+    pub action: String,
+    #[serde(default = "String::default")]
     pub msg: String,
     #[serde(default = "zero_code")]
     pub code: String,
+}
+
+impl EventResponse {
+    pub fn channel(&self) -> Option<String> {
+        if let Some(arg) = &self.arg {
+            if let Some(arg_detail) = arg.as_object() {
+                if let Some(val) = arg_detail.get("channel") {
+                    return Some(val.to_string());
+                }
+            }
+        }
+
+        None
+    }
 }
 
 fn zero_code() -> String {
