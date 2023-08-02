@@ -2,12 +2,12 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 
-use crate::apikey::OkxClient;
+use crate::apikey::OkxAccountClient;
 use crate::restful::models::AccountBalance;
 
 use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverage, RestApi};
 
-impl OkxClient {
+impl OkxAccountClient {
     pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<RestApi<AccountBalance>> {
         //  //api/v5/account/balance
         let mut params: BTreeMap<String, String> = BTreeMap::new();

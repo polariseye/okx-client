@@ -3,3 +3,4 @@ pub mod market;
 pub mod models;
 pub mod sign;
 pub mod trade;
+pub mod public;

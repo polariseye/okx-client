@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use crate::apikey::OkxClient;
+use crate::apikey::OkxAccountClient;
 use super::models::*;
 
 #[derive(Serialize, Debug, Deserialize)]
@@ -20,7 +20,7 @@ pub struct OrdersPendingFilter {
     pub before: Option<String>,
     pub limit: Option<String>,
 }
-impl OkxClient {
+impl OkxAccountClient {
     // 获取未成交订单列表
     // 获取当前账户下所有未成交订单信息
 

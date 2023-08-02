@@ -3,9 +3,9 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 
 use super::models::{MarketBooks, MarketTicker, MarketTickers, RestApi};
-use crate::apikey::OkxClient;
+use crate::apikey::OkxPublicClient;
 
-impl OkxClient {
+impl OkxPublicClient {
     // 获取所有产品行情信息
     // GET /api/v5/market/tickers
 
