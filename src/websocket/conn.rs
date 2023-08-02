@@ -2,7 +2,7 @@ use crate::utils;
 use async_trait::async_trait;
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::{SinkExt, StreamExt};
-use log::{error, info, warn};
+use log::{error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::string::String;
 use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
@@ -109,6 +109,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
             let handler = on_conn_handle_conn.handler();
             if handler.is_none() {
                 // 如果处理对象都已经不存在了，则应该结束
+                warn!("not found handler. will stop all");
                 break;
             }
             let receive_wait_handle = tokio::spawn(async move {
@@ -256,6 +257,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                                             // pong消息处理
                                             let _ = pong_sender.send(PongMessage::Pong).await;
                                         } else {
+                                            trace!("received message:{}", &val);
                                             if let Err(err) = self.handle_message(val).await {
                                                 error!("handle message error. {}", err.to_string());
                                             }
@@ -336,7 +338,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
         }
 
         self.send(&WebsocketRequest {
-            op: "login".to_string(),
+            op: op.to_string(),
             args: vec![req_val],
         })
         .await

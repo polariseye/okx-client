@@ -23,13 +23,13 @@ pub struct AccountWebsocket {
 }
 
 impl AccountWebsocket {
-    pub async fn start(handler: THandler, api_key: &str, secret_key: &str, passphrase: &str, url: &str) -> Arc<Self> {
+    pub async fn start(api_key: &str, secret_key: &str, passphrase: &str, url: &str) -> Arc<Self> {
         let result = Arc::new(Self {
             api_key: api_key.to_string(),
             secret_key: secret_key.to_string(),
             passphrase: passphrase.to_string(),
             conn: OnceCell::new(),
-            handler,
+            handler: RwLock::new(Arc::new(BTreeMap::new())),
             is_account_subscribed: Default::default(),
             order_subscribed: Mutex::new(vec![]),
         });
@@ -53,7 +53,7 @@ impl AccountWebsocket {
         }
 
         let mut cloned:BTreeMap<String, Arc<Box<dyn AccountHandler>>> = writer.as_ref().clone();
-        cloned.insert(id, Arc::newe(Box::new(handler)));
+        cloned.insert(id, Arc::new(Box::new(handler)));
 
         *writer = Arc::new(cloned);
     }
@@ -117,10 +117,13 @@ impl AccountWebsocket {
         #[derive(Serialize)]
         struct Request {
             pub channel: String,
+            #[serde(rename="extraParams")]
+            pub extra_params: String,
         }
 
         let req = Request {
             channel: "account".to_string(),
+            extra_params: "{\"updateInterval\":0}".into(),
         };
 
         let _ = self.conn().send_request("subscribe", &req).await;
@@ -179,7 +182,7 @@ impl AccountWebsocket {
             }
         }
 
-        self.order_unsubscribe_detail(inst_type)
+        self.order_unsubscribe_detail(inst_type).await
     }
     async fn order_unsubscribe_detail(&self, inst_type: InstType){
         {
@@ -206,6 +209,7 @@ impl AccountWebsocket {
 #[async_trait]
 impl Handler for AccountWebsocket {
     async fn on_connected(&self) {
+        println!("connected");
         self.login().await;
 
         if self.is_account_subscribed.load(Ordering::SeqCst){
@@ -223,6 +227,7 @@ impl Handler for AccountWebsocket {
     }
 
     async fn on_disconnected(&self) {
+        println!("disconnected");
         for item in self.handlers().values() {
             item.on_disconnected().await;
         }
@@ -234,7 +239,7 @@ impl Handler for AccountWebsocket {
             item.handle_response(&resp).await;
         }
 
-        debug!("receive. code:{} msg:{}", &resp.code, &resp.msg);
+        debug!("receive. code:{} msg:{} action:{}", &resp.code, &resp.msg, &resp.action);
         if resp.code != "0" {
             error!("receive error. code:{} msg:{}", &resp.code, &resp.msg);
             return;

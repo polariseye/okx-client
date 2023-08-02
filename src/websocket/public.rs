@@ -63,7 +63,7 @@ struct OrderBookSubscribeInfo {
     pub size: OrderBookSize
 }
 
-struct PublicWebsocket {
+pub struct PublicWebsocket {
     conn: OnceCell<Arc<WebsocketConn<PublicWebsocket>>>,
     handler: RwLock<Arc<BTreeMap<String, Arc<Box<dyn PublicHandler>>>>>,
     ticker_subscribed: Mutex<Vec<String>>,
@@ -96,7 +96,7 @@ impl PublicWebsocket {
         }
 
         let mut cloned:BTreeMap<String, Arc<Box<dyn PublicHandler>>> = writer.as_ref().clone();
-        cloned.insert(id, Arc::newe(Box::new(handler)));
+        cloned.insert(id, Arc::new(Box::new(handler)));
 
         *writer = Arc::new(cloned);
     }
@@ -124,10 +124,10 @@ impl PublicWebsocket {
     pub async fn ticker_subscribe(&self, inst_id: &str) {
         {
             let mut writer = self.ticker_subscribed.lock().unwrap();
-            if writer.iter().any(|item| *item == inst_type) {
+            if writer.iter().any(|item| *item == inst_id) {
                 return;
             }
-            writer.push(inst_type.clone());
+            writer.push(inst_id.into());
         }
 
         self.ticker_subscribe_detail(inst_id).await
@@ -168,10 +168,10 @@ impl PublicWebsocket {
     pub async fn trade_subscribe(&self, inst_id: &str) {
         {
             let mut writer = self.trade_subscribed.lock().unwrap();
-            if writer.iter().any(|item| *item == inst_type) {
+            if writer.iter().any(|item| *item == inst_id) {
                 return;
             }
-            writer.push(inst_type.clone());
+            writer.push(inst_id.into());
         }
 
         self.trade_subscribe_detail(inst_id).await
@@ -313,11 +313,26 @@ impl Handler for PublicWebsocket {
 
         match channel.as_str() {
             "tickers" => {
+                let arg;
+                if let Some(val) = &resp.arg {
+                    match serde_json::from_value(val.clone()) {
+                        Ok(val) => {
+                           arg = val;
+                        },
+                        Err(err) => {
+                            error!("unmarshal ticker arg error:{}", err.to_string());
+                            return;
+                        }
+                    }
+                } else {
+                    error!("receive ticker event. but have no arg");
+                    return;
+                }
                 if let Some(data) = resp.data {
                     match serde_json::from_value(data) {
                         Ok(ticker_data) => {
                             for item in handlers.values() {
-                                item.ticker_event(&ticker_data).await;
+                                item.ticker_event(&arg,&ticker_data).await;
                             }
                         },
                         Err(err) => {
@@ -329,11 +344,27 @@ impl Handler for PublicWebsocket {
                 }
             },
             "trades" => {
+                let arg;
+                if let Some(val) = &resp.arg {
+                    match serde_json::from_value(val.clone()) {
+                        Ok(val) => {
+                            arg = val;
+                        },
+                        Err(err) => {
+                            error!("unmarshal trades arg error:{}", err.to_string());
+                            return;
+                        }
+                    }
+                } else {
+                    error!("receive trades event. but have no arg");
+                    return;
+                }
+
                 if let Some(data) = resp.data {
                     match serde_json::from_value(data) {
                         Ok(traded_data) => {
                             for item in handlers.values() {
-                                item.trade_event(&traded_data).await;
+                                item.trade_event(&arg,&traded_data).await;
                             }
                         },
                         Err(err) => {
@@ -361,12 +392,27 @@ impl Handler for PublicWebsocket {
                     return;
                 }
 
+                let arg;
+                if let Some(val) = &resp.arg {
+                    match serde_json::from_value(val.clone()) {
+                        Ok(val) => {
+                            arg = val;
+                        },
+                        Err(err) => {
+                            error!("unmarshal orderbook arg error:{}", err.to_string());
+                            return;
+                        }
+                    }
+                } else {
+                    error!("receive orderbook event. but have no arg");
+                    return;
+                }
 
                 if let Some(data) = resp.data {
                     match serde_json::from_value(data) {
                         Ok(orderbook_data) => {
                             for item in handlers.values() {
-                                item.orderbook_event(orderbook_type, orderbook_size, orderbook_data).await;
+                                item.orderbook_event(&arg,orderbook_type, orderbook_size, &orderbook_data).await;
                             }
                         }
                         Err(err) => {
@@ -390,9 +436,9 @@ pub trait PublicHandler: Send + Sync {
     fn id(&self) -> String;
 
     /// 行情事件
-    async fn ticker_event(&self, events: &Vec<TickerEvent>){}
-    async fn trade_event(&self, events: &Vec<TradeEvent>){}
-    async fn orderbook_event(&self, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<TradeEvent>){}
+    async fn ticker_event(&self, arg: &TickerEventArg, events: &Vec<TickerEvent>){}
+    async fn trade_event(&self, arg:&TradeEventArg, events: &Vec<TradeEvent>){}
+    async fn orderbook_event(&self, arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<TradeEvent>){}
 
     async fn on_connected(&self){}
     async fn on_disconnected(&self){}
