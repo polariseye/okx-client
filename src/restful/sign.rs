@@ -46,12 +46,12 @@ impl OkxAccountClient {
 
         debug!(
             "[*] Debug:\nUrl:{}\nparameters:{:?}",
-            format!("{}{}", self.base_config.domain, request_path),
+            format!("{}{}", self.base_config.rest_domain, request_path),
             parameters
         );
 
         let res = client
-            .get(format!("{}{}", self.base_config.domain, get_url_params))
+            .get(format!("{}{}", self.base_config.rest_domain, get_url_params))
             .headers(headers)
             .send()
             .await?
@@ -63,7 +63,7 @@ impl OkxAccountClient {
         Ok(serde_json::from_str::<T>(&res)?)
 
         // let res = client
-        //     .get(format!("{}{}", self.base_config.domain, get_url_params))
+        //     .get(format!("{}{}", self.base_config.rest_domain, get_url_params))
         //     .headers(headers)
         //     .send()
         //     .await?
@@ -102,12 +102,12 @@ impl OkxAccountClient {
 
         debug!(
                 "[*] Debug:\nUrl:{}\nparameters:{:?}",
-                format!("{}{}", self.base_config.domain, request_path),
+                format!("{}{}", self.base_config.rest_domain, request_path),
                 parameters
         );
 
         // let res = client
-        //     .post(format!("{}{}", self.base_config.domain, request_path))
+        //     .post(format!("{}{}", self.base_config.rest_domain, request_path))
         //     .headers(headers)
         //     .json(&parameters)
         //     .send()
@@ -122,7 +122,7 @@ impl OkxAccountClient {
         // Ok(res)
 
         let res = client
-            .post(format!("{}{}", self.base_config.domain, request_path))
+            .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
@@ -158,12 +158,12 @@ impl OkxAccountClient {
 
         debug!(
                 "[*] Debug:\nUrl:{}\nparameters:{:?}",
-                format!("{}{}", self.base_config.domain, request_path),
+                format!("{}{}", self.base_config.rest_domain, request_path),
                 parameters
             );
 
         let res = client
-            .post(format!("{}{}", self.base_config.domain, request_path))
+            .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
@@ -264,12 +264,12 @@ impl OkxPublicClient {
 
         debug!(
             "[*] Debug:\nUrl:{}\nparameters:{:?}",
-            format!("{}{}", self.base_config.domain, request_path),
+            format!("{}{}", self.base_config.rest_domain, request_path),
             parameters
         );
 
         let res = client
-            .get(format!("{}{}", self.base_config.domain, get_url_params))
+            .get(format!("{}{}", self.base_config.rest_domain, get_url_params))
             .headers(headers)
             .send()
             .await?
@@ -304,12 +304,12 @@ impl OkxPublicClient {
 
         debug!(
                 "[*] Debug:\nUrl:{}\nparameters:{:?}",
-                format!("{}{}", self.base_config.domain, request_path),
+                format!("{}{}", self.base_config.rest_domain, request_path),
                 parameters
         );
 
         let res = client
-            .post(format!("{}{}", self.base_config.domain, request_path))
+            .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
@@ -344,12 +344,12 @@ impl OkxPublicClient {
 
         debug!(
                 "[*] Debug:\nUrl:{}\nparameters:{:?}",
-                format!("{}{}", self.base_config.domain, request_path),
+                format!("{}{}", self.base_config.rest_domain, request_path),
                 parameters
             );
 
         let res = client
-            .post(format!("{}{}", self.base_config.domain, request_path))
+            .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
@@ -381,7 +381,7 @@ impl OkxPublicClient {
         );
 
         // 如果是测试网
-        if self.testnet {
+        if self.base_config.testnet {
             header_map.insert("x-simulated-trading", HeaderValue::from_static("1"));
         }
 

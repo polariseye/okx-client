@@ -2,7 +2,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use log::LevelFilter;
 use crate::restful::models::InstType;
-use crate::websocket::{AccountEvent, AccountHandler, EventResponse, OrderBookEventArg, OrderBookSize, OrderBookType, OrderEvent, PublicHandler, PublicWebsocket, TickerEvent, TickerEventArg, TradeEvent, TradeEventArg};
+use crate::websocket::{AccountEvent, AccountHandler, EventResponse, OrderBook, OrderBookEvent, OrderBookEventArg, OrderBookMergeHandler, OrderBookSize, OrderBookType, OrderEvent, PublicHandler, PublicWebsocket, TickerEvent, TickerEventArg, TradeEvent, TradeEventArg};
 
 pub mod apikey;
 pub mod models;
@@ -37,11 +37,13 @@ async fn pub_test(){
     pub_sock.register(TestHandler{});
     // pub_sock.trade_subscribe("DOT-USDT").await;
     pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;
+    pub_sock.orderbook_merge().register(OrderBookTestHandler{});
 
     tokio::time::sleep(Duration::from_secs(60)).await;
 }
 
 struct TestHandler {}
+
 #[async_trait]
 impl AccountHandler for TestHandler {
     fn id(&self) -> String {
@@ -75,7 +77,7 @@ impl PublicHandler for TestHandler {
         println!("trade_event:{}", event_str);
     }
 
-    async fn orderbook_event(&self,arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<TradeEvent>) {
+    async fn orderbook_event(&self,arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<OrderBookEvent>) {
         let event_str = serde_json::to_string(events).unwrap();
         println!("orderbook_event:{}", event_str);
     }
@@ -89,5 +91,28 @@ impl PublicHandler for TestHandler {
     }
 
     async fn handle_response(&self, resp: &EventResponse) {
+    }
+}
+
+struct OrderBookTestHandler {
+
+}
+
+#[async_trait]
+impl OrderBookMergeHandler for OrderBookTestHandler {
+    fn id(&self) -> String {
+        "test".to_string()
+    }
+
+    fn inst_id(&self) -> String {
+        "DOT-USDT".to_string()
+    }
+
+    async fn on_orderbook_update(&self, orderbook: &OrderBook) {
+        let asks = serde_json::to_string(&orderbook.asks).unwrap();
+        let bids = serde_json::to_string(&orderbook.bids).unwrap();
+
+        println!("seqId:{} asks:{}", orderbook.seq_id, &asks);
+        println!("seqId:{} bids:{}", orderbook.seq_id, &bids);
     }
 }

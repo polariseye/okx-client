@@ -46,10 +46,11 @@ impl OkxAccountClient {
     }
 
     pub async fn start_websocket(&self, domain: impl Into<String>) -> Arc<AccountWebsocket> {
-        AccountWebsocket::start(&self.api_key, &self.secret_key, &self.passphrase, &self.base_config.private_websocket_domain)
+        AccountWebsocket::start(&self.api_key, &self.secret_key, &self.passphrase, &self.base_config.private_websocket_domain).await
     }
 }
 
+#[derive(Debug, Clone, Deserialize)]
 pub struct OkxConfig {
     pub testnet: bool,
     pub rest_domain: String,

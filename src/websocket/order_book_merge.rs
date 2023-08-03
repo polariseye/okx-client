@@ -5,8 +5,9 @@ use std::collections::{BTreeMap, HashMap};
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OrderBookItem {
     pub price: Decimal,
     pub amount: Decimal,
@@ -134,10 +135,8 @@ impl OrderBookMergeMgr {
     pub fn register(&self, handler: impl OrderBookMergeHandler+'static){
         let mut writer =  self.handler.write().unwrap();
         let id = handler.id();
-        for item in writer.values() {
-            if let Some(_val) = item.get(&id) {
-                panic!("repeated handler register:{}", id.clone());
-            }
+        if let Some(_val) = writer.get(&id) {
+            panic!("repeated handler register:{}", id.clone());
         }
 
         let mut cloned:HashMap<String, Arc<Box<dyn OrderBookMergeHandler>>> = writer.as_ref().clone();
@@ -212,7 +211,7 @@ impl PublicHandler for OrderBookMergeMgr {
                 }
                 if !handlers.is_empty() {
                     let orderbook = writer.get_order_book();
-                    tokio::spawn(async{
+                    tokio::spawn(async move{
                        for item in handlers.values() {
                            item.on_orderbook_update(&orderbook).await;
                        }
@@ -223,7 +222,8 @@ impl PublicHandler for OrderBookMergeMgr {
     }
 }
 
-pub trait OrderBookMergeHandler {
+#[async_trait]
+pub trait OrderBookMergeHandler: Send + Sync {
     fn id(&self) -> String;
 
     fn inst_id(&self) -> String;
