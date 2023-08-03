@@ -21,7 +21,6 @@ impl OkxPublicClient {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct OkxAccountClient {
-    pub account: String,
     pub api_key: String,
     pub secret_key: String,
     pub passphrase: String,
@@ -31,14 +30,12 @@ pub struct OkxAccountClient {
 impl OkxAccountClient {
     pub fn new(
         base_config: OkxConfig,
-        account: impl Into<String>,
         api_key: impl Into<String>,
         secret_key: impl Into<String>,
         passphrase: impl Into<String>,
     ) -> Self {
         OkxAccountClient {
             base_config,
-            account: account.into(),
             api_key: api_key.into(),
             secret_key: secret_key.into(),
             passphrase: passphrase.into(),
@@ -90,11 +87,11 @@ pub fn testnet_config() -> OkxConfig {
 }
 
 impl OkxConfig {
-    pub fn create_account_client(self,account: impl Into<String>,
+    pub fn create_account_client(self,
                                  api_key: impl Into<String>,
                                  secret_key: impl Into<String>,
                                  passphrase: impl Into<String>,) -> OkxAccountClient {
-        OkxAccountClient::new(self,account, api_key, secret_key, passphrase)
+        OkxAccountClient::new(self, api_key, secret_key, passphrase)
     }
 
     pub fn create_pub_client(self) -> OkxPublicClient {

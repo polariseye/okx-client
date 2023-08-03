@@ -17,15 +17,17 @@ async fn main() {
         .with_module_level("tungstenite",LevelFilter::Error)
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
-    pub_test().await;
+    let pub_client = apikey::testnet_config().create_pub_client();
+    let insts = pub_client.public_instruments(InstType::Spot, None, None, None).await.unwrap();
+    println!("result:{:?}", &insts.data);
+    // pub_test().await;
 }
 
 async fn account_test(){
-    let account_obj = websocket::AccountWebsocket::start(
+    apikey::testnet_config().create_account_client(
         "a462e3ed-6866-4ed1-b8e5-8d59126a2a51",
         "B03846A56AEC13A169E3E4C67F11895F",
-        "H7ZubBD9FAAffhR!",
-        "wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999").await;
+        "H7ZubBD9FAAffhR!").await;
     account_obj.register(TestHandler{});
     account_obj.account_subscribe().await;
     account_obj.order_subscribe(InstType::Spot).await;
@@ -33,7 +35,7 @@ async fn account_test(){
     tokio::time::sleep(Duration::from_secs(60)).await;
 }
 async fn pub_test(){
-    let pub_sock = PublicWebsocket::start("wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999").await;
+    let pub_sock = apikey::testnet_config().create_pub_client().await;
     pub_sock.register(TestHandler{});
     // pub_sock.trade_subscribe("DOT-USDT").await;
     pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;
