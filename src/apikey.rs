@@ -42,7 +42,7 @@ impl OkxAccountClient {
         }
     }
 
-    pub async fn start_websocket(&self, domain: impl Into<String>) -> Arc<AccountWebsocket> {
+    pub async fn start_websocket(&self) -> Arc<AccountWebsocket> {
         AccountWebsocket::start(&self.api_key, &self.secret_key, &self.passphrase, &self.base_config.private_websocket_domain).await
     }
 }
@@ -56,6 +56,7 @@ pub struct OkxConfig {
     pub business_domain: String,
 } 
 
+#[allow(unused)]
 pub fn mainnet_config() -> OkxConfig{
     OkxConfig{
         testnet: false,
@@ -66,6 +67,7 @@ pub fn mainnet_config() -> OkxConfig{
     }
 }
 
+#[allow(unused)]
 pub fn aws_mainnet_config()-> OkxConfig{
     OkxConfig {
         testnet: false,
@@ -76,6 +78,7 @@ pub fn aws_mainnet_config()-> OkxConfig{
     }
 }
 
+#[allow(unused)]
 pub fn testnet_config() -> OkxConfig {
     OkxConfig {
         testnet: true,

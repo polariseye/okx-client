@@ -1,14 +1,14 @@
 use std::collections::BTreeMap;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex, RwLock};
-use std::sync::atomic::AtomicBool;
+
 use async_trait::async_trait;
 use log::*;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-use crate::restful::models::InstType;
+use crate::restful::InstType;
 use crate::websocket::{EventResponse, Handler, WebsocketConn};
-use crate::websocket::order_book_merge::{OrderBookMerge, OrderBookMergeMgr};
+use crate::websocket::order_book_merge::{OrderBookMergeMgr};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum OrderBookSize {

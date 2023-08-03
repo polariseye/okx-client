@@ -5,14 +5,14 @@ use futures_util::{SinkExt, StreamExt};
 use log::{error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::string::String;
-use std::sync::atomic::{AtomicBool, AtomicI64, Ordering};
+
 use std::sync::{Arc, RwLock, Weak};
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::select;
 use tokio::sync::mpsc::{Receiver, Sender};
-use tokio_tungstenite::tungstenite::handshake::client::Response;
-use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
+
+
 use tokio_tungstenite::tungstenite::{Error, Message};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_tungstenite::tungstenite::error::ProtocolError;
@@ -72,7 +72,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
     ) {
         loop {
             conn_obj.set_state(ConnState::Connecting);
-            let mut conn;
+            let conn;
             match tokio_tungstenite::connect_async(&conn_obj.remote_url).await {
                 Err(err) => {
                     tokio::time::sleep(Duration::from_secs(2)).await;
@@ -243,7 +243,7 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
     async fn receive_tokio(
         &self,
         mut receiver: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>,
-        mut pong_sender: Sender<PongMessage>,
+        pong_sender: Sender<PongMessage>,
     ) {
         loop {
             select! {
@@ -263,10 +263,10 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
                                             }
                                         }
                                     },
-                                    Message::Binary(val) => {
+                                    Message::Binary(_val) => {
 
                                     },
-                                    Message::Close(val) => {
+                                    Message::Close(_val) => {
                                         let _ = pong_sender.send(PongMessage::Close).await;
                                         return;
                                     },

@@ -1,4 +1,4 @@
-use crate::websocket::{OrderBookEvent, OrderBookEventArg, OrderBookSize, OrderBookType, PublicHandler, TradeEvent};
+use crate::websocket::{OrderBookEvent, OrderBookEventArg, OrderBookSize, OrderBookType, PublicHandler};
 use log::error;
 use rust_decimal::Decimal;
 use std::collections::{BTreeMap, HashMap};
@@ -130,7 +130,6 @@ pub struct OrderBook {
     /// 买方深度
     pub bids: Vec<OrderBookItem>,
 }
-
 
 pub struct OrderBookMergeMgr{
     handler: RwLock<Arc< HashMap<String, Arc<Box<dyn OrderBookMergeHandler>>>>>,

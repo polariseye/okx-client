@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fmt::Debug;
 
 use anyhow::Result;
-use chrono::Utc;
+
 
 use http::{HeaderMap, HeaderValue};
 use log::debug;
@@ -254,7 +254,7 @@ impl OkxPublicClient {
         // OK-ACCESS-SIGN的请求头是对timestamp + method + requestPath + body字符串(+表示字符串连接)，以及SecretKey
 
         // let message = format!("{}GET{}{}", timestamp, get_url_params, &self.secret_key);
-        let message = format!("{}GET{}", timestamp, get_url_params);
+        let _message = format!("{}GET{}", timestamp, get_url_params);
 
         // println!("{:?}", message);
 
@@ -294,7 +294,7 @@ impl OkxPublicClient {
 
         let data = serde_json::to_string(&parameters).unwrap();
 
-        let message = format!("{}POST{}{}", timestamp, request_path, &data);
+        let _message = format!("{}POST{}{}", timestamp, request_path, &data);
 
         let headers = self.create_header( &timestamp);
 
@@ -335,7 +335,7 @@ impl OkxPublicClient {
 
         let data = serde_json::to_string(parameters).unwrap();
 
-        let message = format!("{}POST{}{}", timestamp, request_path, &data);
+        let _message = format!("{}POST{}{}", timestamp, request_path, &data);
 
         // println!("sign : {:?} ", sign);
         let headers = self.create_header( &timestamp);

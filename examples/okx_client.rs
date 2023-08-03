@@ -1,14 +1,8 @@
 use std::time::Duration;
 use async_trait::async_trait;
 use log::LevelFilter;
-use crate::restful::models::InstType;
-use crate::websocket::{AccountEvent, AccountHandler, EventResponse, OrderBook, OrderBookEvent, OrderBookEventArg, OrderBookMergeHandler, OrderBookSize, OrderBookType, OrderEvent, PublicHandler, PublicWebsocket, TickerEvent, TickerEventArg, TradeEvent, TradeEventArg};
-
-pub mod apikey;
-pub mod models;
-pub mod restful;
-pub mod utils;
-mod websocket;
+use okx_client::*;
+use okx_client::websocket::*;
 
 #[tokio::main]
 async fn main() {
@@ -17,17 +11,17 @@ async fn main() {
         .with_module_level("tungstenite",LevelFilter::Error)
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
-    let pub_client = apikey::testnet_config().create_pub_client();
+    let pub_client = testnet_config().create_pub_client();
     let insts = pub_client.public_instruments(InstType::Spot, None, None, None).await.unwrap();
     println!("result:{:?}", &insts.data);
     // pub_test().await;
 }
 
 async fn account_test(){
-    apikey::testnet_config().create_account_client(
+    let account_obj = testnet_config().create_account_client(
         "a462e3ed-6866-4ed1-b8e5-8d59126a2a51",
         "B03846A56AEC13A169E3E4C67F11895F",
-        "H7ZubBD9FAAffhR!").await;
+        "H7ZubBD9FAAffhR!").start_websocket().await;
     account_obj.register(TestHandler{});
     account_obj.account_subscribe().await;
     account_obj.order_subscribe(InstType::Spot).await;
@@ -35,7 +29,7 @@ async fn account_test(){
     tokio::time::sleep(Duration::from_secs(60)).await;
 }
 async fn pub_test(){
-    let pub_sock = apikey::testnet_config().create_pub_client().await;
+    let pub_sock = testnet_config().create_pub_client().start_websocket().await;
     pub_sock.register(TestHandler{});
     // pub_sock.trade_subscribe("DOT-USDT").await;
     pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;
@@ -69,17 +63,17 @@ impl PublicHandler for TestHandler {
         AccountHandler::id(self)
     }
 
-    async fn ticker_event(&self, arg: &TickerEventArg, events: &Vec<TickerEvent>) {
+    async fn ticker_event(&self, _arg: &TickerEventArg, events: &Vec<TickerEvent>) {
         let event_str = serde_json::to_string(events).unwrap();
         println!("ticker_event:{}", event_str);
     }
 
-    async fn trade_event(&self,  arg:&TradeEventArg, events: &Vec<TradeEvent>) {
+    async fn trade_event(&self,  _arg:&TradeEventArg, events: &Vec<TradeEvent>) {
         let event_str = serde_json::to_string(events).unwrap();
         println!("trade_event:{}", event_str);
     }
 
-    async fn orderbook_event(&self,arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<OrderBookEvent>) {
+    async fn orderbook_event(&self,_arg: &OrderBookEventArg, _order_book_type: OrderBookType, _size: OrderBookSize, _events: &Vec<OrderBookEvent>) {
         // let event_str = serde_json::to_string(events).unwrap();
         // println!("orderbook_event:{}", event_str);
     }
@@ -92,7 +86,7 @@ impl PublicHandler for TestHandler {
         println!("disconnected");
     }
 
-    async fn handle_response(&self, resp: &EventResponse) {
+    async fn handle_response(&self, _resp: &EventResponse) {
     }
 }
 

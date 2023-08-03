@@ -8,9 +8,9 @@ use log::{debug, error};
 use once_cell::sync::OnceCell;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
-use crate::restful::models::InstType;
-use crate::utils;
-use crate::websocket::conn::{EventResponse, Handler, WebsocketConn, WebsocketRequest};
+use crate::restful::InstType;
+
+use crate::websocket::conn::{EventResponse, Handler, WebsocketConn};
 
 pub struct AccountWebsocket {
     api_key: String,
