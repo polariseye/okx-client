@@ -47,11 +47,19 @@ impl OrderBookMerge {
         if event.bids.is_empty() && event.asks.is_empty() {
             return false;
         }
+        if self.size == OrderBookSize::Size5 || self.size == OrderBookSize::BboTbt {
+            // 全量推送
+            self.clear();
+        }
 
         for item in &event.bids {
             match OrderBookItem::new(item) {
                 Ok(val) => {
-                    self.bids.insert(val.price.clone(), val);
+                    if val.amount.is_zero() {
+                        self.bids.remove(&val.price);
+                    } else {
+                        self.bids.insert(val.price.clone(), val);
+                    }
                 }
                 Err(err) => {
                     error!("handle bids orderbook item error,{}", err.to_string());
@@ -62,7 +70,11 @@ impl OrderBookMerge {
         for item in &event.asks {
             match OrderBookItem::new(item) {
                 Ok(val) => {
-                    self.asks.insert(val.price.clone(), val);
+                    if val.amount.is_zero() {
+                        self.asks.remove(&val.price);
+                    } else {
+                        self.asks.insert(val.price.clone(), val);
+                    }
                 }
                 Err(err) => {
                     error!("handle asks orderbook item error,{}", err.to_string());
@@ -225,8 +237,6 @@ impl PublicHandler for OrderBookMergeMgr {
 #[async_trait]
 pub trait OrderBookMergeHandler: Send + Sync {
     fn id(&self) -> String;
-
-    fn inst_id(&self) -> String;
 
     async fn on_orderbook_update(&self, orderbook:&OrderBook);
 }

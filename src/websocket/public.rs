@@ -233,6 +233,7 @@ impl PublicWebsocket {
         };
 
         let _ = self.conn().send_request("subscribe", &req).await;
+        self.orderbook_merge_mgr.add_merge(inst_id, size);
     }
 
     pub async fn orderbook_unsubscribe(&self, inst_id: &str, size: OrderBookSize){
@@ -255,6 +256,8 @@ impl PublicWebsocket {
         };
 
         let _ = self.conn().send_request("unsubscribe", &req).await;
+        self.orderbook_merge_mgr.remove_merge(inst_id);
+
     }
 
     pub fn orderbook_merge(&self) -> &OrderBookMergeMgr {
@@ -304,7 +307,6 @@ impl Handler for PublicWebsocket {
             item.handle_response(&resp).await;
         }
 
-        debug!("receive. code:{} msg:{}", &resp.code, &resp.msg);
         if resp.code != "0" {
             error!("receive error. code:{} msg:{}", &resp.code, &resp.msg);
             return;

@@ -377,7 +377,7 @@ impl EventResponse {
         if let Some(arg) = &self.arg {
             if let Some(arg_detail) = arg.as_object() {
                 if let Some(val) = arg_detail.get("channel") {
-                    return Some(val.to_string());
+                    return Some(val.as_str().unwrap().to_string());
                 }
             }
         }

@@ -13,7 +13,7 @@ mod websocket;
 #[tokio::main]
 async fn main() {
     simple_logger::SimpleLogger::new()
-        .with_level(LevelFilter::Trace)
+        .with_level(LevelFilter::Debug)
         .with_module_level("tungstenite",LevelFilter::Error)
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
@@ -39,7 +39,7 @@ async fn pub_test(){
     pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;
     pub_sock.orderbook_merge().register(OrderBookTestHandler{});
 
-    tokio::time::sleep(Duration::from_secs(60)).await;
+    tokio::time::sleep(Duration::from_secs(60*10)).await;
 }
 
 struct TestHandler {}
@@ -78,8 +78,8 @@ impl PublicHandler for TestHandler {
     }
 
     async fn orderbook_event(&self,arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<OrderBookEvent>) {
-        let event_str = serde_json::to_string(events).unwrap();
-        println!("orderbook_event:{}", event_str);
+        // let event_str = serde_json::to_string(events).unwrap();
+        // println!("orderbook_event:{}", event_str);
     }
 
     async fn on_connected(&self) {
@@ -104,15 +104,11 @@ impl OrderBookMergeHandler for OrderBookTestHandler {
         "test".to_string()
     }
 
-    fn inst_id(&self) -> String {
-        "DOT-USDT".to_string()
-    }
-
     async fn on_orderbook_update(&self, orderbook: &OrderBook) {
         let asks = serde_json::to_string(&orderbook.asks).unwrap();
         let bids = serde_json::to_string(&orderbook.bids).unwrap();
 
-        println!("seqId:{} asks:{}", orderbook.seq_id, &asks);
-        println!("seqId:{} bids:{}", orderbook.seq_id, &bids);
+        println!("seqId:{} len:{} asks:{}", orderbook.seq_id, orderbook.asks.len(), &asks);
+        println!("seqId:{} len:{} bids:{}", orderbook.seq_id, orderbook.bids.len(), &bids);
     }
 }
