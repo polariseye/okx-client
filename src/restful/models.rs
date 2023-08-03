@@ -784,4 +784,5 @@ impl_to_str!(
     QuickMgnType
     OrderState
     InstType
+    InstrumentState
 );
