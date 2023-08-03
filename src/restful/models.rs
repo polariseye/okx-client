@@ -13,6 +13,12 @@ pub struct RestApi<T> {
     pub data: Vec<T>,
 }
 
+impl <T> RestApi<T> {
+    pub fn is_success(&self) -> bool {
+        self.code == "0"
+    }
+}
+
 // 查看持仓信息
 // GET /api/v5/account/positions
 
