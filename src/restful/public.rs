@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 
-use super::models::{MarketTickers, RestApi};
+use super::models::{Instrument, RestApi};
 use crate::apikey::OkxPublicClient;
 
 impl OkxPublicClient {
@@ -17,7 +17,7 @@ impl OkxPublicClient {
         inst_id: Option<T>,
         // impl Into<String>
         // pos_side: impl Into<String>,
-    ) -> Result<RestApi<MarketTickers>>
+    ) -> Result<RestApi<Instrument>>
     where
         T: Into<String>,
     {
@@ -39,7 +39,7 @@ impl OkxPublicClient {
         params.insert("instType".into(), inst_type.into());
 
         Ok(self
-            .get::<RestApi<MarketTickers>>("/api/v5/public/instruments", &params)
+            .get::<RestApi<Instrument>>("/api/v5/public/instruments", &params)
             .await?)
     }
 }

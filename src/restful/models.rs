@@ -66,6 +66,123 @@ pub struct AccountSetLeverage {
     pub pos_side: String,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Instrument {
+    /// 产品类型
+    #[serde(rename = "instType")]
+    pub inst_type: InstType,
+    /// 产品id， 如 BTC-USD-SWAP
+    #[serde(rename = "instId")]
+    pub inst_id: String,
+    /// 标的指数，如 BTC-USD，仅适用于交割/永续/期权
+    pub uly: String,
+    /// 交易品种，如 BTC-USD，仅适用于交割/永续/期权
+    #[serde(rename = "instFamily")]
+    pub inst_family: String,
+    /// 交易货币币种，如 BTC-USDT 中的 BTC ，仅适用于币币/币币杠杆
+    #[serde(rename = "baseCcy")]
+    pub base_ccy: String,
+    /// 计价货币币种，如 BTC-USDT 中的USDT ，仅适用于币币/币币杠杆
+    #[serde(rename = "quoteCcy")]
+    pub quote_ccy: String,
+    /// 盈亏结算和保证金币种，如 BTC 仅适用于交割/永续/期权
+    #[serde(rename = "settleCcy")]
+    pub settle_ccy: String,
+    /// 合约面值，仅适用于交割/永续/期权
+    #[serde(rename = "ctVal")]
+    pub ct_val: String,
+    /// 合约乘数，仅适用于交割/永续/期权
+    #[serde(rename = "ctMult")]
+    pub ct_mult: String,
+    /// 合约面值计价币种，仅适用于交割/永续/期权
+    #[serde(rename = "ctValCcy")]
+    pub ct_val_ccy: String,
+    /// 期权类型，C或P 仅适用于期权
+    #[serde(rename = "optType")]
+    pub opt_type: String,
+    /// 行权价格，仅适用于期权
+    pub stk: String,
+    /// 上线日期
+    /// Unix时间戳的毫秒数格式，如 1597026383085
+    #[serde(rename = "listTime")]
+    pub list_time: String,
+    /// 交割/行权日期，仅适用于交割 和 期权
+    /// Unix时间戳的毫秒数格式，如 1597026383085
+    #[serde(rename = "expTime")]
+    pub exp_time: String,
+    /// 该instId支持的最大杠杆倍数，不适用于币币、期权
+    pub lever: String,
+    /// 下单价格精度，如 0.0001
+    /// 对于期权来说，是梯度中的最小下单价格精度，如果想要获取期权价格梯度，请使用"获取期权价格梯度"接口
+    #[serde(rename = "tickSz")]
+    pub tick_sz: String,
+    /// 下单数量精度，如 BTC-USDT-SWAP：1
+    #[serde(rename = "lotSz")]
+    pub lot_sz: String,
+    /// 最小下单数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“交易货币”
+    #[serde(rename = "minSz")]
+    pub min_sz: String,
+    /// linear：正向合约
+    /// inverse：反向合约
+    /// 仅适用于交割/永续
+    #[serde(rename = "ctType")]
+    pub ct_type: String,
+    /// 合约日期别名
+    /// this_week：本周
+    /// next_week：次周
+    /// quarter：季度
+    /// next_quarter：次季度
+    /// 仅适用于交割
+    pub alias: String,
+    /// 产品状态
+    /// live：交易中
+    /// suspend：暂停中
+    /// preopen：预上线，如：交割和期权的新合约在 live 之前，会有 preopen 状态
+    /// test：测试中（测试产品，不可交易）
+    pub state: InstrumentState,
+    /// 合约或现货限价单的单笔最大委托数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“交易货币”
+    #[serde(rename = "maxLmtSz")]
+    pub max_lmt_sz: String,
+    /// 合约或现货市价单的单笔最大委托数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“USDT”
+    #[serde(rename = "maxMktSz")]
+    pub max_mkt_sz: String,
+    /// 合约或现货时间加权单的单笔最大委托数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“交易货币”
+    #[serde(rename = "maxTwapSz")]
+    pub max_twap_sz: String,
+    /// 合约或现货冰山委托的单笔最大委托数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“交易货币”
+    #[serde(rename = "maxIcebergSz")]
+    pub max_iceberg_sz: String,
+    /// 合约或现货计划委托委托的单笔最大委托数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“交易货币”
+    #[serde(rename = "maxTriggerSz")]
+    pub max_trigger_sz: String,
+    /// 合约或现货止盈止损市价委托的单笔最大委托数量,
+    /// 合约的数量单位是“张”，现货的数量单位是“USDT”
+    #[serde(rename = "maxStopSz")]
+    pub max_stop_sz: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+pub enum InstrumentState {
+    /// 交易中
+    #[serde(rename="live")]
+    Live,
+    /// 暂停中
+    #[serde(rename="suspend")]
+    Suspend,
+    /// 预上线，如：交割和期权的新合约在 live 之前，会有 preopen 状态
+    #[serde(rename="preopen")]
+    Preopen,
+    /// 测试中（测试产品，不可交易）
+    #[serde(rename="test")]
+    Test,
+}
+
 // 获取所有产品行情信息
 // 获取产品行情信息
 #[derive(Debug, Deserialize, Serialize)]
