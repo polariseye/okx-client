@@ -8,6 +8,7 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use crate::restful::models::InstType;
 use crate::websocket::{EventResponse, Handler, WebsocketConn};
+use crate::websocket::order_book_merge::{OrderBookMerge, OrderBookMergeMgr};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum OrderBookSize {
@@ -69,6 +70,7 @@ pub struct PublicWebsocket {
     ticker_subscribed: Mutex<Vec<String>>,
     trade_subscribed: Mutex<Vec<String>>,
     orderbook_subscribed: Mutex<Vec<OrderBookSubscribeInfo>>,
+    orderbook_merge_mgr: OrderBookMergeMgr,
 }
 
 impl PublicWebsocket {
@@ -79,6 +81,7 @@ impl PublicWebsocket {
             ticker_subscribed: Mutex::new(vec![]),
             trade_subscribed: Mutex::new(vec![]),
             orderbook_subscribed: Mutex::new(vec![]),
+            orderbook_merge_mgr: OrderBookMergeMgr::new(),
         });
 
         let week = Arc::downgrade(&result);
@@ -253,6 +256,10 @@ impl PublicWebsocket {
 
         let _ = self.conn().send_request("unsubscribe", &req).await;
     }
+
+    pub fn orderbook_merge(&self) -> &OrderBookMergeMgr {
+        &self.orderbook_merge_mgr
+    }
 }
 
 #[async_trait]
@@ -414,6 +421,8 @@ impl Handler for PublicWebsocket {
                             for item in handlers.values() {
                                 item.orderbook_event(&arg,orderbook_type, orderbook_size, &orderbook_data).await;
                             }
+
+                            self.orderbook_merge_mgr.orderbook_event(&arg, orderbook_type, orderbook_size, &orderbook_data).await;
                         }
                         Err(err) => {
                             error!("unmarshal trade data error:{}", err.to_string());
@@ -438,7 +447,7 @@ pub trait PublicHandler: Send + Sync {
     /// 行情事件
     async fn ticker_event(&self, arg: &TickerEventArg, events: &Vec<TickerEvent>){}
     async fn trade_event(&self, arg:&TradeEventArg, events: &Vec<TradeEvent>){}
-    async fn orderbook_event(&self, arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<TradeEvent>){}
+    async fn orderbook_event(&self, arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<OrderBookEvent>){}
 
     async fn on_connected(&self){}
     async fn on_disconnected(&self){}
@@ -454,6 +463,7 @@ pub enum OrderBookType {
     #[serde(rename="update")]
     Update
 }
+
 impl OrderBookType {
     pub fn from_action(action: &str) -> Option<OrderBookType> {
         match action {
@@ -524,7 +534,7 @@ pub struct TradeEvent {
 pub type OrderBookEventArg = TickerEventArg;
 
 #[derive(Serialize, Deserialize)]
-struct OrderBookEvent {
+pub struct OrderBookEvent {
     pub asks: Vec<Vec<String>>,
     pub bids: Vec<Vec<String>>,
     pub ts: String,

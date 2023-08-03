@@ -1,6 +1,7 @@
 mod conn;
 mod public;
 mod account;
+mod order_book_merge;
 
 pub use conn::*;
 pub use public::*;
