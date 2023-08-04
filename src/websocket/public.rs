@@ -476,14 +476,14 @@ impl OrderBookType {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone,Serialize, Deserialize)]
 pub struct TickerEventArg {
     pub channel: String,
     #[serde(rename = "instId")]
     pub inst_id: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone,Serialize, Deserialize)]
 pub struct TickerEvent {
     #[serde(rename = "instType")]
     pub inst_type: InstType,
@@ -515,7 +515,7 @@ pub struct TickerEvent {
 
 pub type TradeEventArg = TickerEventArg;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone,Serialize, Deserialize)]
 pub struct TradeEvent {
     /// 产品ID，如 BTC-USD-180216
     #[serde(rename = "instId")]
@@ -535,7 +535,7 @@ pub struct TradeEvent {
 
 pub type OrderBookEventArg = TickerEventArg;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone,Serialize, Deserialize)]
 pub struct OrderBookEvent {
     pub asks: Vec<Vec<String>>,
     pub bids: Vec<Vec<String>>,

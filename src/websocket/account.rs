@@ -290,7 +290,7 @@ impl Handler for AccountWebsocket {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct AccountEventArg {
     pub channel: String,
     #[serde(skip_serializing_if = "String::is_empty")]
@@ -299,7 +299,7 @@ pub struct AccountEventArg {
     pub uid: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct AccountAssetItemEvent {
     #[serde(rename = "availBal")]
     pub avail_bal: String,
@@ -346,7 +346,7 @@ pub struct AccountAssetItemEvent {
     pub iso_upl: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct AccountEvent {
     #[serde(rename = "uTime")]
     pub u_time: String,
@@ -367,7 +367,7 @@ pub struct AccountEvent {
     pub details: Vec<AccountAssetItemEvent>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OrderSubscribeArg {
     pub channel: String,
     #[serde(rename = "instType")]
@@ -378,7 +378,7 @@ pub struct OrderSubscribeArg {
     pub inst_id: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct OrderEvent {
     /// 产品类型
     #[serde(rename = "instType")]

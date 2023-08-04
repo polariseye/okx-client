@@ -22,7 +22,7 @@ impl <T> RestApi<T> {
 // 查看持仓信息
 // GET /api/v5/account/positions
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone,Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountPositions {
     pub mgn_mode: String, //保证金模式
@@ -38,7 +38,7 @@ pub struct AccountPositions {
 }
 
 // 查看历史持仓信息
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountPositionsHistory {
     pub inst_type: String, //持仓方向
@@ -57,7 +57,7 @@ pub struct AccountPositionsHistory {
 
 // 设置杠杆倍数
 // POST /api/v5/account/set-leverage
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountSetLeverage {
     pub lever: String,
@@ -66,7 +66,7 @@ pub struct AccountSetLeverage {
     pub pos_side: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Instrument {
     /// 产品类型
     #[serde(rename = "instType")]
@@ -185,7 +185,7 @@ pub enum InstrumentState {
 
 // 获取所有产品行情信息
 // 获取产品行情信息
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MarketTickers {
     pub inst_type: String,
@@ -209,7 +209,7 @@ pub struct MarketTickers {
 
 // 获取单个产品行情信息
 // 获取产品行情信息
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MarketTicker {
     pub inst_type: String,
@@ -232,7 +232,7 @@ pub struct MarketTicker {
 }
 
 ///
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MarketBooks {
     pub asks: Vec<MarketBooksItemData>,
@@ -240,7 +240,7 @@ pub struct MarketBooks {
     pub ts: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MarketBooksItemData {
     #[serde(deserialize_with = "de_float_from_str")]
@@ -256,7 +256,7 @@ pub struct MarketBooksItemData {
 // 获取未成交订单列表
 // 获取当前账户下所有未成交订单信息
 // GET /api/v5/trade/orders-pending
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeOrdersPending {
     pub inst_type: InstType,
@@ -306,7 +306,7 @@ pub struct TradeOrdersPending {
     pub c_time: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeOrdersHistory {
     pub inst_type: String,
@@ -324,7 +324,7 @@ pub struct TradeOrdersHistory {
 // 批量撤单
 // 撤销未完成的订单，每次最多可以撤销20个订单。请求参数应该按数组格式传递。
 // POST /api/v5/trade/cancel-batch-orders
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeCancelBatchOrders {
     pub ord_id: String,    //持仓方向
@@ -337,7 +337,7 @@ pub struct TradeCancelBatchOrders {
 // 只有当您的账户有足够的资金才能下单。
 // 该接口支持带单合约的下单，但不支持为带单合约平仓
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeOrder {
     pub ord_id: String,    //持仓方向
@@ -349,7 +349,7 @@ pub struct TradeOrder {
 
 // 修改订单
 // 修改当前未成交的挂单
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeAmendOrder {
     pub ord_id: String,    //持仓方向
@@ -472,7 +472,7 @@ pub enum OrderState {
     Canceled,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct OrderRequestInfo {
     /// 产品ID，如 BTC-USDT
     #[serde(rename = "instId")]
@@ -634,13 +634,13 @@ pub enum InstType {
 // 获取订单信息
 // 查订单信息
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TradeOrderGet {
     pub state: String, //订单状态  filled
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BalanceDetailItem {
     /// 币种
     pub ccy: String,
@@ -724,7 +724,7 @@ pub struct BalanceDetailItem {
     pub spot_in_use_amt: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AccountBalance {
     /// 美金层面有效保证金
     /// 适用于跨币种保证金模式和组合保证金模式
@@ -761,7 +761,7 @@ pub struct AccountBalance {
     pub u_time: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
 pub enum ExecuteType{
     #[serde(rename="T")]
     Taker,
