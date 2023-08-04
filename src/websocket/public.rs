@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex, RwLock};
-
 use async_trait::async_trait;
 use log::*;
 use once_cell::sync::OnceCell;
@@ -9,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::restful::InstType;
 use crate::websocket::{EventResponse, Handler, WebsocketConn};
 use crate::websocket::order_book_merge::{OrderBookMergeMgr};
+use crate::utils::from_str;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum OrderBookSize {
@@ -510,7 +510,8 @@ pub struct TickerEvent {
     pub sod_utc0: String,
     #[serde(rename = "sodUtc8")]
     pub sod_utc8: String,
-    pub ts: String,
+    #[serde(deserialize_with="from_str")]
+    pub ts: i64,
 }
 
 pub type TradeEventArg = TickerEventArg;
@@ -521,8 +522,8 @@ pub struct TradeEvent {
     #[serde(rename = "instId")]
     pub inst_id: String,
     /// 成交ID
-    #[serde(rename = "tradeId")]
-    pub trade_id: String,
+    #[serde(rename = "tradeId", deserialize_with="from_str")]
+    pub trade_id: i64,
     /// 成交价格
     pub px: String,
     /// 成交数量
@@ -530,6 +531,7 @@ pub struct TradeEvent {
     /// 成交方向，buy sell
     pub side: String,
     /// 成交时间，Unix时间戳的毫秒数格式，如 1597026383085
+    #[serde(deserialize_with="from_str")]
     pub ts: String,
 }
 
@@ -539,7 +541,8 @@ pub type OrderBookEventArg = TickerEventArg;
 pub struct OrderBookEvent {
     pub asks: Vec<Vec<String>>,
     pub bids: Vec<Vec<String>>,
-    pub ts: String,
+    #[serde(deserialize_with="from_str")]
+    pub ts: i64,
     pub checksum: i64,
     #[serde(rename = "prevSeqId")]
     pub prev_seq_id: i64,

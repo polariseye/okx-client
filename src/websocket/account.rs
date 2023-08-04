@@ -10,6 +10,7 @@ use ring::hmac;
 use serde::{Deserialize, Serialize};
 use crate::{ExecuteType, OrderState, OrderType, PositionSide, StopMode, TpTriggerPxType, TradeMode, TradeSide};
 use crate::restful::InstType;
+use crate::utils::from_str;
 
 use crate::websocket::conn::{EventResponse, Handler, WebsocketConn};
 
@@ -308,8 +309,8 @@ pub struct AccountAssetItemEvent {
     pub ccy: String,
     #[serde(rename = "cashBal")]
     pub cash_bal: String,
-    #[serde(rename = "uTime")]
-    pub u_time: String,
+    #[serde(rename = "uTime", deserialize_with="from_str")]
+    pub u_time: i64,
     #[serde(rename = "disEq")]
     pub dis_eq: String,
     pub eq: String,
@@ -348,8 +349,8 @@ pub struct AccountAssetItemEvent {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct AccountEvent {
-    #[serde(rename = "uTime")]
-    pub u_time: String,
+    #[serde(rename = "uTime", deserialize_with="from_str")]
+    pub u_time: i64,
     #[serde(rename = "totalEq")]
     pub total_eq: String,
     #[serde(rename = "isoEq")]
@@ -427,8 +428,8 @@ pub struct OrderEvent {
     #[serde(rename = "fillPx")]
     pub fill_px: String,
     /// 最新成交ID
-    #[serde(rename = "tradeId")]
-    pub trade_id: String,
+    #[serde(rename = "tradeId", deserialize_with="from_str")]
+    pub trade_id: i64,
     /// 最新成交数量
     /// 对于币币和杠杆，单位为交易货币，如 BTC-USDT, 单位为 BTC；对于市价单，无论tgtCcy是base_ccy，还是quote_ccy，单位均为交易货币；
     /// 对于交割、永续以及期权，单位为张。
@@ -438,8 +439,8 @@ pub struct OrderEvent {
     #[serde(rename = "fillPnl")]
     pub fill_pnl: String,
     /// 最新成交时间
-    #[serde(rename = "fillTime")]
-    pub fill_time: String,
+    #[serde(rename = "fillTime", deserialize_with="from_str")]
+    pub fill_time: i64,
     /// 最新一笔成交的手续费金额或者返佣金额：
     /// 手续费扣除 为 ‘负数’，如 -0.01 ；
     /// 手续费返佣 为 ‘正数’，如 0.01
@@ -582,7 +583,8 @@ pub struct OrderEvent {
     /// 策略委托单ID，策略订单触发时有值，否则为""
     #[serde(rename = "algoId")]
     pub algo_id: String,
-    pub code: String,
+    #[serde(deserialize_with="from_str")]
+    pub code: i32,
     pub msg: String,
 }
 

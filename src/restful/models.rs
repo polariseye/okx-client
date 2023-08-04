@@ -2,20 +2,22 @@
 use serde::{Deserialize, Serialize};
 
 use crate::models::de_float_from_str;
+use crate::utils::from_str;
 
 ///////////////////
 /// // rest 通用模板
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct RestApi<T> {
-    pub code: String,
+    #[serde(deserialize_with="from_str")]
+    pub code: i32,
     pub msg: String,
     pub data: Vec<T>,
 }
 
 impl <T> RestApi<T> {
     pub fn is_success(&self) -> bool {
-        self.code == "0"
+        self.code == 0
     }
 }
 
@@ -104,12 +106,12 @@ pub struct Instrument {
     pub stk: String,
     /// 上线日期
     /// Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "listTime")]
-    pub list_time: String,
+    #[serde(rename = "listTime", deserialize_with="from_str")]
+    pub list_time: i64,
     /// 交割/行权日期，仅适用于交割 和 期权
     /// Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "expTime")]
-    pub exp_time: String,
+    #[serde(rename = "expTime", deserialize_with="from_str")]
+    pub exp_time: i64,
     /// 该instId支持的最大杠杆倍数，不适用于币币、期权
     pub lever: String,
     /// 下单价格精度，如 0.0001
@@ -228,7 +230,8 @@ pub struct MarketTicker {
     pub vol24h: String,
     pub sod_utc0: String,
     pub sod_utc8: String,
-    pub ts: String,
+    #[serde(deserialize_with="from_str")]
+    pub ts: i64,
 }
 
 ///
@@ -302,8 +305,10 @@ pub struct TradeOrdersPending {
 
     pub reduce_only: String,
     pub quick_mgn_type: String,
-    pub u_time: String,
-    pub c_time: String,
+    #[serde(deserialize_with="from_str")]
+    pub u_time: i64,
+    #[serde(deserialize_with="from_str")]
+    pub c_time: i64,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -312,11 +317,11 @@ pub struct TradeOrdersHistory {
     pub inst_type: String,
     pub inst_id: String,
 
-    pub ord_type: String,
+    pub ord_type: OrderType,
     //     订单状态
     // canceled：撤单成功
     // filled：完全成交
-    pub state: String,
+    pub state: OrderState,
     #[serde(deserialize_with = "de_float_from_str")]
     pub pnl: f32,
 }
@@ -649,8 +654,8 @@ pub struct BalanceDetailItem {
     /// 币种余额
     #[serde(rename = "cashBal")]
     pub cash_bal: String,
-    #[serde(rename = "uTime")]
-    pub u_time: String,
+    #[serde(rename = "uTime", deserialize_with="from_str")]
+    pub u_time: i64,
     /// 币种逐仓仓位权益
     /// 适用于单币种保证金模式和跨币种保证金模式和组合保证金模式
     #[serde(rename = "isoEq")]
@@ -702,7 +707,8 @@ pub struct BalanceDetailItem {
     /// 当前负债币种触发系统自动换币的风险
     /// 0、1、2、3、4、5其中之一，数字越大代表您的负债币种触发自动换币概率越高
     /// 适用于跨币种保证金模式和组合保证金模式
-    pub twap: String,
+    #[serde(deserialize_with="from_str")]
+    pub twap: i32,
     /// 币种最大可借
     /// 适用于跨币种保证金模式和组合保证金模式 的全仓
     #[serde(rename = "maxLoan")]
@@ -757,8 +763,8 @@ pub struct AccountBalance {
     #[serde(rename = "totalEq")]
     pub total_eq: String,
     /// 账户信息的更新时间，Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "uTime")]
-    pub u_time: String,
+    #[serde(rename = "uTime", deserialize_with="from_str")]
+    pub u_time: i64,
 }
 
 #[derive(Clone, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
