@@ -43,3 +43,15 @@ impl OkxPublicClient {
             .await?)
     }
 }
+
+#[cfg(test)]
+mod test{
+    use crate::InstType;
+
+    #[tokio::test]
+    pub async fn test_instrument() {
+        let pub_client = crate::testnet_config().create_pub_client();
+        let result = pub_client.public_instruments(InstType::Spot, None, None, None).await.unwrap();
+        println!("result:{:?}", result);
+    }
+}

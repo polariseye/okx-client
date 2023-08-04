@@ -761,6 +761,14 @@ pub struct AccountBalance {
     pub u_time: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub enum ExecuteType{
+    #[serde(rename="T")]
+    Taker,
+    #[serde(rename="M")]
+    Maker
+}
+
 macro_rules! impl_to_str {
     ($($arg:tt)*) => {
         $(
@@ -785,4 +793,5 @@ impl_to_str!(
     OrderState
     InstType
     InstrumentState
+    ExecuteType
 );
