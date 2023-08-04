@@ -1,7 +1,5 @@
 use std::collections::BTreeMap;
-
 use anyhow::Result;
-
 use crate::apikey::OkxAccountClient;
 use crate::restful::models::AccountBalance;
 
