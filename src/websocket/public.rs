@@ -445,14 +445,14 @@ impl Handler for PublicWebsocket {
 #[allow(unused)]
 pub trait PublicHandler: Send + Sync {
     fn id(&self) -> String;
+    async fn on_connected(&self){}
+    async fn on_disconnected(&self){}
 
     /// 行情事件
     async fn ticker_event(&self, arg: &TickerEventArg, events: &Vec<TickerEvent>){}
     async fn trade_event(&self, arg:&TradeEventArg, events: &Vec<TradeEvent>){}
     async fn orderbook_event(&self, arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<OrderBookEvent>){}
 
-    async fn on_connected(&self){}
-    async fn on_disconnected(&self){}
     async fn handle_response(&self, resp: &EventResponse){}
 }
 

@@ -592,9 +592,9 @@ pub struct OrderEvent {
 #[allow(unused)]
 pub trait AccountHandler: Send + Sync {
     fn id(&self) -> String;
-    async fn account_event(&self, events: &Vec<AccountEvent>){}
-    async fn order_event(&self, events: &Vec<OrderEvent>){}
     async fn on_connected(&self){}
     async fn on_disconnected(&self){}
+    async fn account_event(&self, events: &Vec<AccountEvent>){}
+    async fn order_event(&self, events: &Vec<OrderEvent>){}
     async fn handle_response(&self, resp: &EventResponse){}
 }
