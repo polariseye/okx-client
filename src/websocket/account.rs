@@ -553,11 +553,11 @@ pub struct OrderEvent {
     /// ddh：对冲减仓类型订单
     pub category: String,
     /// 订单创建时间，Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "cTime")]
-    pub c_time: String,
+    #[serde(rename = "cTime", serialize_with="to_str",deserialize_with="from_str")]
+    pub c_time: i64,
     /// 订单更新时间，Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "uTime")]
-    pub u_time: String,
+    #[serde(rename = "uTime", serialize_with="to_str",deserialize_with="from_str")]
+    pub u_time: i64,
     /// 修改订单时使用的request ID，如果没有修改，该字段为""
     #[serde(rename = "reqId")]
     pub req_id: String,
@@ -571,8 +571,8 @@ pub struct OrderEvent {
     #[serde(rename = "amendResult")]
     pub amend_result: String,
     /// 是否只减仓，true 或 false
-    #[serde(rename = "reduceOnly")]
-    pub reduce_only: String,
+    #[serde(rename = "reduceOnly", serialize_with="to_str",deserialize_with="from_str")]
+    pub reduce_only: bool,
     /// 一键借币类型，仅适用于杠杆逐仓的一键借币模式
     /// manual：手动，auto_borrow： 自动借币，auto_repay： 自动还币
     #[serde(rename = "quickMgnType")]
