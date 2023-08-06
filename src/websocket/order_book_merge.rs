@@ -102,6 +102,7 @@ impl OrderBookMerge {
         }
 
         return OrderBook {
+            inst_id: self.inst_id.clone(),
             asks,
             bids,
             seq_id: self.seq_id,
@@ -123,6 +124,8 @@ impl OrderBookItem {
 }
 
 pub struct OrderBook {
+    pub inst_id: String,
+
     pub seq_id: i64,
 
     /// 卖方深度
