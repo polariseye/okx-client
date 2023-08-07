@@ -168,7 +168,7 @@ pub struct Instrument {
     pub max_stop_sz: String,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum InstrumentState {
     /// 交易中
     #[serde(rename="live")]
@@ -367,7 +367,7 @@ pub struct TradeAmendOrder {
     pub s_msg: String,  //持仓方向
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum TradeMode {
     /// isolated：逐仓
     #[serde(rename="isolated")]
@@ -380,7 +380,7 @@ pub enum TradeMode {
     Cash
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum TradeSide {
     #[serde(rename="buy")]
     Buy,
@@ -389,7 +389,7 @@ pub enum TradeSide {
 }
 
 /// 持仓方向 在开平仓模式下必填，且仅可选择 long 或 short。 仅适用交割、永续。
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum PositionSide {
     #[serde(rename="long")]
     Long,
@@ -397,7 +397,7 @@ pub enum PositionSide {
     Short
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum OrderType {
     /// 市价单
     #[serde(rename="market")]
@@ -425,7 +425,7 @@ pub enum OrderType {
     MmpAndPostOnly,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum StopMode {
     #[serde(rename="cancel_maker")]
     CancelMaker,
@@ -436,7 +436,7 @@ pub enum StopMode {
 }
 
 /// 止盈触发价类型
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum TpTriggerPxType {
     // 最新价格
     #[serde(rename="last")]
@@ -450,7 +450,7 @@ pub enum TpTriggerPxType {
 }
 
 /// 一键借币类型
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum QuickMgnType{
     /// 手动
     #[serde(rename="manual")]
@@ -463,7 +463,7 @@ pub enum QuickMgnType{
     AutoRepay,
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum OrderState {
     #[serde(rename="live")]
     Live,
@@ -616,7 +616,7 @@ impl OrderRequestInfo {
 }
 
 /// 产品类型
-#[derive(Serialize, Deserialize, Clone, Copy, Eq, PartialEq, Debug, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum InstType {
     /// 币币
     #[serde(rename="SPOT")]
@@ -769,7 +769,7 @@ pub struct AccountBalance {
     pub u_time: i64,
 }
 
-#[derive(Clone, Serialize, Deserialize, Copy, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum ExecuteType{
     #[serde(rename="T")]
     Taker,
