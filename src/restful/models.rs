@@ -774,6 +774,25 @@ pub enum ExecuteType{
     Maker
 }
 
+#[derive(Clone,Serialize, Deserialize, Debug)]
+pub struct Trade {
+    /// 产品ID，如 BTC-USD-180216
+    #[serde(rename = "instId")]
+    pub inst_id: String,
+    /// 成交ID
+    #[serde(rename = "tradeId", serialize_with="to_str",deserialize_with="from_str")]
+    pub trade_id: i64,
+    /// 成交价格
+    pub px: String,
+    /// 成交数量
+    pub sz: String,
+    /// 成交方向，buy sell
+    pub side: String,
+    /// 成交时间，Unix时间戳的毫秒数格式，如 1597026383085
+    #[serde(serialize_with="to_str",deserialize_with="from_str")]
+    pub ts: String,
+}
+
 macro_rules! impl_to_str {
     ($($arg:tt)*) => {
         $(

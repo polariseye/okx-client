@@ -1,8 +1,6 @@
 use std::collections::BTreeMap;
-
 use anyhow::Result;
-
-use super::models::{MarketBooks, MarketTicker, MarketTickers, RestApi};
+use super::models::{MarketBooks, MarketTicker, MarketTickers, RestApi, Trade};
 use crate::apikey::OkxPublicClient;
 
 impl OkxPublicClient {
@@ -49,6 +47,20 @@ impl OkxPublicClient {
 
         Ok(self
             .get::<RestApi<MarketTicker>>("/api/v5/market/ticker", &params)
+            .await?)
+    }
+
+    /// 获取交易产品公共成交数据
+    /// GET /api/v5/market/trades
+    pub async fn market_trades(&self, inst_id: impl Into<String>, limit: usize) -> Result<RestApi<Trade>>{
+        let mut params: BTreeMap<String, String> = BTreeMap::new();
+
+        // /api/v5/market/trades
+        params.insert("instId".into(), inst_id.into());
+        params.insert("limit".into(), limit.to_string());
+
+        Ok(self
+            .get::<RestApi<Trade>>("/api/v5/market/trades", &params)
             .await?)
     }
 
