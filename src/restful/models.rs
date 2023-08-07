@@ -278,9 +278,11 @@ pub struct TradeOrdersPending {
     pub acc_fill_sz: String,
 
     pub fill_px: String,
-    pub trade_id: String,
+    #[serde(rename = "tradeId", serialize_with="to_str",deserialize_with="from_str")]
+    pub trade_id: i64,
     pub fill_sz: String,
-    pub fill_time: String,
+    #[serde(rename = "fillTime", serialize_with="to_str",deserialize_with="from_str")]
+    pub fill_time: i64,
     pub avg_px: String,
     pub state: OrderState,
 
@@ -302,6 +304,7 @@ pub struct TradeOrdersPending {
     pub stp_id: String,
     pub stp_mode: StopMode,
 
+    #[serde(rename = "reduceOnly", serialize_with="to_str",deserialize_with="from_str")]
     pub reduce_only: String,
     pub quick_mgn_type: String,
     #[serde(serialize_with="to_str",deserialize_with="from_str")]
