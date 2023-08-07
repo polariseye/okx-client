@@ -72,23 +72,21 @@ impl OkxAccountClient {
     //  获取历史订单记录（近七天）
     // 获取最近7天的已经完结状态的订单数据，已经撤销的未成交单 只保留2小时
     // GET /api/v5/trade/orders-history
-    pub async fn trade_orders_history<T>(
+    pub async fn trade_orders_history(
         &self,
-        inst_type: T,
-        uly: Option<T>,
-        inst_family: Option<T>,
-        inst_id: Option<T>,
-        ord_type: Option<T>,
-        state: Option<T>,
-        category: Option<T>,
-        after: Option<T>,
-        before: Option<T>,
-        begin: Option<T>,
-        end: Option<T>,
-        limit: Option<T>,
+        inst_type: InstType,
+        uly: Option<impl Into<String>>,
+        inst_family: Option<impl Into<String>>,
+        inst_id: Option<impl Into<String>>,
+        ord_type: Option<impl Into<String>>,
+        state: Option<impl Into<String>>,
+        category: Option<impl Into<String>>,
+        after: Option<impl Into<String>>,
+        before: Option<impl Into<String>>,
+        begin: Option<impl Into<String>>,
+        end: Option<impl Into<String>>,
+        limit: Option<impl Into<String>>,
     ) -> Result<RestApi<TradeOrdersHistory>>
-    where
-        T: Into<String>,
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -143,14 +141,12 @@ impl OkxAccountClient {
 
     // 取消未成交订单
 
-    pub async fn trade_cancel_batch_orders<T>(
+    pub async fn trade_cancel_batch_orders(
         &self,
-        inst_id: Option<T>,
+        inst_id: Option<impl Into<String>+Clone>,
         order_ids: &Vec<String>,
-        cl_ord_id: Option<T>,
+        cl_ord_id: Option<impl Into<String>+Clone>,
     ) -> Result<RestApi<TradeCancelBatchOrders>>
-    where
-        T: Into<String> + Clone,
     {
         let mut params_vec = Vec::new();
         for item in order_ids {

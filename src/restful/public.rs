@@ -4,22 +4,21 @@ use anyhow::Result;
 
 use super::models::{Instrument, RestApi};
 use crate::apikey::OkxPublicClient;
+use crate::InstType;
 
 impl OkxPublicClient {
     //     获取交易产品基础信息
     // 获取所有可交易产品的信息列表。
     // GET /api/v5/public/instruments
-    pub async fn public_instruments<T>(
+    pub async fn public_instruments(
         &self,
-        inst_type: T,
-        uly: Option<T>,
-        inst_family: Option<T>,
-        inst_id: Option<T>,
+        inst_type: InstType,
+        uly: Option<impl Into<String>>,
+        inst_family: Option<impl Into<String>>,
+        inst_id: Option<impl Into<String>>,
         // impl Into<String>
         // pos_side: impl Into<String>,
     ) -> Result<RestApi<Instrument>>
-    where
-        T: Into<String>,
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();

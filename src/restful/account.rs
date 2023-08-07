@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use anyhow::Result;
 use crate::apikey::OkxAccountClient;
+use crate::InstType;
 use crate::restful::models::AccountBalance;
 
 use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverage, RestApi};
@@ -24,16 +25,14 @@ impl OkxAccountClient {
     // 获取该账户下拥有实际持仓的信息。账户为单向持仓模式会显示净持仓（net），账户为双向持仓模式下会分别返回多头（long）或空头（short）的仓位。按照仓位创建时间倒序排列。
     // GET /api/v5/account/positions
 
-    pub async fn account_positions<T>(
+    pub async fn account_positions(
         &self,
-        inst_type: Option<T>,
-        inst_id: Option<T>,
-        pos_id: Option<T>,
+        inst_type: Option<InstType>,
+        inst_id: Option<impl Into<String>>,
+        pos_id: Option<impl Into<String>>,
         // impl Into<String>
         // pos_side: impl Into<String>,
     ) -> Result<RestApi<AccountPositions>>
-    where
-        T: Into<String>,
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -60,17 +59,15 @@ impl OkxAccountClient {
 
     // 设置杠杆倍数
     // POST  /api/v5/account/set-leverage
-    pub async fn account_set_leverage<T>(
+    pub async fn account_set_leverage(
         &self,
 
-        inst_id: Option<T>,
-        ccy: Option<T>,
-        lever: T,
-        mgn_mode: T,
-        pos_side: Option<T>,
+        inst_id: Option<impl Into<String>>,
+        ccy: Option<impl Into<String>>,
+        lever: impl Into<String>,
+        mgn_mode: impl Into<String>,
+        pos_side: Option<impl Into<String>>,
     ) -> Result<RestApi<AccountSetLeverage>>
-    where
-        T: Into<String>,
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -99,22 +96,20 @@ impl OkxAccountClient {
     // 获取最近3个月有更新的仓位信息，按照仓位更新时间倒序排列。
     // GET /api/v5/account/positions-history
 
-    pub async fn account_positions_history<T>(
+    pub async fn account_positions_history(
         &self,
-        inst_type: Option<T>,
-        inst_id: Option<T>,
-        mgn_mode: Option<T>,
+        inst_type: Option<impl Into<String>>,
+        inst_id: Option<impl Into<String>>,
+        mgn_mode: Option<impl Into<String>>,
 
-        ptype: Option<T>,
-        pos_id: Option<T>,
-        after: Option<T>,
-        before: Option<T>,
-        limit: Option<T>,
+        ptype: Option<impl Into<String>>,
+        pos_id: Option<impl Into<String>>,
+        after: Option<impl Into<String>>,
+        before: Option<impl Into<String>>,
+        limit: Option<impl Into<String>>,
         // impl Into<String>
         // pos_side: impl Into<String>,
     ) -> Result<RestApi<AccountPositionsHistory>>
-    where
-        T: Into<String>,
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
