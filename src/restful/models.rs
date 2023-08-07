@@ -305,7 +305,7 @@ pub struct TradeOrdersPending {
     pub stp_mode: StopMode,
 
     #[serde(rename = "reduceOnly", serialize_with="to_str",deserialize_with="from_str")]
-    pub reduce_only: String,
+    pub reduce_only: bool,
     pub quick_mgn_type: String,
     #[serde(serialize_with="to_str",deserialize_with="from_str")]
     pub u_time: i64,
