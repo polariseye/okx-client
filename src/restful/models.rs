@@ -793,7 +793,7 @@ pub struct Trade {
     pub side: String,
     /// 成交时间，Unix时间戳的毫秒数格式，如 1597026383085
     #[serde(serialize_with="to_str",deserialize_with="from_str")]
-    pub ts: String,
+    pub ts: i64,
 }
 
 macro_rules! impl_to_str {
