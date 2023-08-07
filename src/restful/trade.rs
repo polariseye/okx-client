@@ -143,24 +143,25 @@ impl OkxAccountClient {
 
     pub async fn trade_cancel_batch_orders(
         &self,
-        inst_id: Option<impl Into<String>+Clone>,
-        order_ids: &Vec<String>,
-        cl_ord_id: Option<impl Into<String>+Clone>,
+        inst_id: impl Into<String>,
+        order_ids: &[String],
+        cl_ord_id: &[String],
     ) -> Result<RestApi<TradeCancelBatchOrders>>
     {
+        let inst_id = inst_id.into();
         let mut params_vec = Vec::new();
         for item in order_ids {
             let mut params: BTreeMap<String, String> = BTreeMap::new();
 
-            if let Some(inst_id) = &inst_id {
-                params.insert("instId".into(), inst_id.clone().into());
-            }
-
-            if let Some(cl_ord_id) = &cl_ord_id {
-                params.insert("clOrdId".into(), cl_ord_id.clone().into());
-            }
-
+            params.insert("instId".into(), inst_id.clone());
             params.insert("ordId".into(), item.clone());
+            params_vec.push(params);
+        }
+        for item in cl_ord_id {
+            let mut params: BTreeMap<String, String> = BTreeMap::new();
+
+            params.insert("instId".into(), inst_id.clone());
+            params.insert("clOrdId".into(), item.clone());
             params_vec.push(params);
         }
 
