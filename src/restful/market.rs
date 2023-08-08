@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use anyhow::Result;
+use crate::okx_error::*;
 use super::models::{MarketBooks, MarketTicker, MarketTickers, RestApi, Trade};
 use crate::apikey::OkxPublicClient;
 

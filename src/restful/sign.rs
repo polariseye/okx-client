@@ -1,9 +1,6 @@
 use std::collections::BTreeMap;
 use std::fmt::Debug;
-
-use anyhow::Result;
-
-
+use crate::okx_error::*;
 use http::{HeaderMap, HeaderValue};
 use log::debug;
 use ring::hmac;
@@ -50,31 +47,31 @@ impl OkxAccountClient {
             parameters
         );
 
-        let res = client
+        let res;
+        match client
             .get(format!("{}{}", self.base_config.rest_domain, get_url_params))
             .headers(headers)
             .send()
-            .await?
-            .text()
-            .await?;
+            .await {
+            Ok(resp) => {
+                match resp.text().await {
+                    Ok(val) => res = val,
+                    Err(err) => {
+                        return Err(err.into());
+                    }
+                }
+            },
+            Err(err) => {
+                return Err(err.into());
+            }
+        };
 
         debug!("[*] Response {:#?}", res);
 
-        Ok(serde_json::from_str::<T>(&res)?)
-
-        // let res = client
-        //     .get(format!("{}{}", self.base_config.rest_domain, get_url_params))
-        //     .headers(headers)
-        //     .send()
-        //     .await?
-        //     .json::<T>()
-        //     .await?;
-
-        // if self.debug {
-        //     println!("[*] Response {:#?}", res);
-        // }
-
-        // Ok(res)
+        match serde_json::from_str::<T>(&res) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn post<T>(
@@ -106,33 +103,32 @@ impl OkxAccountClient {
                 parameters
         );
 
-        // let res = client
-        //     .post(format!("{}{}", self.base_config.rest_domain, request_path))
-        //     .headers(headers)
-        //     .json(&parameters)
-        //     .send()
-        //     .await?
-        //     .json::<T>()
-        //     .await?;
-
-        // if self.debug {
-        //     println!("[*]Response {:#?}", res);
-        // }
-
-        // Ok(res)
-
-        let res = client
+        let res;
+        match client
             .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
-            .await?
-            .text()
-            .await?;
+            .await {
+            Ok(resp) => {
+                match resp.text().await {
+                    Ok(val) => res = val,
+                    Err(err) => {
+                        return Err(err.into());
+                    }
+                }
+            },
+            Err(err) => {
+                return Err(err.into());
+            }
+        };
 
         debug!("[*] Response {:#?}", res);
 
-        Ok(serde_json::from_str::<T>(&res)?)
+        match serde_json::from_str::<T>(&res) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn post_vec<T>(
@@ -162,22 +158,32 @@ impl OkxAccountClient {
                 parameters
             );
 
-        let res = client
+        let res;
+        match client
             .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
-            .await?
-            .text()
-            .await?;
-
-        // if self.debug {
-        //     println!("[*] Response {:#?}", res);
-        // }
+            .await {
+            Ok(resp) => {
+                match resp.text().await {
+                    Ok(val) => res = val,
+                    Err(err) => {
+                        return Err(err.into());
+                    }
+                }
+            },
+            Err(err) => {
+                return Err(err.into());
+            }
+        };
 
         debug!("[*] Response {:#?}", res);
 
-        Ok(serde_json::from_str::<T>(&res)?)
+        match serde_json::from_str::<T>(&res) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     fn create_header(&self, sign: &str, timestamp: &str) -> HeaderMap {
@@ -268,17 +274,31 @@ impl OkxPublicClient {
             parameters
         );
 
-        let res = client
+        let res;
+        match client
             .get(format!("{}{}", self.base_config.rest_domain, get_url_params))
             .headers(headers)
             .send()
-            .await?
-            .text()
-            .await?;
+            .await {
+            Ok(resp) => {
+                match resp.text().await {
+                    Ok(val) => res = val,
+                    Err(err) => {
+                        return Err(err.into());
+                    }
+                }
+            },
+            Err(err) => {
+                return Err(err.into());
+            }
+        };
 
         debug!("[*] Response {:#?}", res);
 
-        Ok(serde_json::from_str::<T>(&res)?)
+        match serde_json::from_str::<T>(&res) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn post<T>(
@@ -308,18 +328,32 @@ impl OkxPublicClient {
                 parameters
         );
 
-        let res = client
+        let res;
+        match client
             .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
-            .await?
-            .text()
-            .await?;
+            .await {
+            Ok(resp) => {
+                match resp.text().await {
+                    Ok(val) => res = val,
+                    Err(err) => {
+                        return Err(err.into());
+                    }
+                }
+            },
+            Err(err) => {
+                return Err(err.into());
+            }
+        };
 
         debug!("[*] Response {:#?}", res);
 
-        Ok(serde_json::from_str::<T>(&res)?)
+        match serde_json::from_str::<T>(&res) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     pub async fn post_vec<T>(
@@ -348,22 +382,32 @@ impl OkxPublicClient {
                 parameters
             );
 
-        let res = client
+        let res;
+        match client
             .post(format!("{}{}", self.base_config.rest_domain, request_path))
             .headers(headers)
             .json(&parameters)
             .send()
-            .await?
-            .text()
-            .await?;
-
-        // if self.debug {
-        //     println!("[*] Response {:#?}", res);
-        // }
+            .await {
+            Ok(resp) => {
+                match resp.text().await {
+                    Ok(val) => res = val,
+                    Err(err) => {
+                        return Err(err.into());
+                    }
+                }
+            },
+            Err(err) => {
+                return Err(err.into());
+            }
+        };
 
         debug!("[*] Response {:#?}", res);
 
-        Ok(serde_json::from_str::<T>(&res)?)
+        match serde_json::from_str::<T>(&res) {
+            Ok(val) => Ok(val),
+            Err(err) => Err(err.into()),
+        }
     }
 
     fn create_header(&self, timestamp: &str) -> HeaderMap {

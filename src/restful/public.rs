@@ -1,7 +1,5 @@
 use std::collections::BTreeMap;
-
-use anyhow::Result;
-
+use crate::okx_error::*;
 use super::models::{Instrument, RestApi};
 use crate::apikey::OkxPublicClient;
 use crate::InstType;

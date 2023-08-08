@@ -5,17 +5,15 @@ use futures_util::{SinkExt, StreamExt};
 use log::{error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use std::string::String;
-
 use std::sync::{Arc, RwLock, Weak};
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio::select;
 use tokio::sync::mpsc::{Receiver, Sender};
-
-
 use tokio_tungstenite::tungstenite::{Error, Message};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 use tokio_tungstenite::tungstenite::error::ProtocolError;
+use crate::okx_error::*;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub enum ConnState {
@@ -287,9 +285,9 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
         }
     }
 
-    async fn handle_message(&self, message: String) -> anyhow::Result<()> {
+    async fn handle_message(&self, message: String) -> Result<()> {
         let event_resp: EventResponse =
-            serde_json::from_str(&message).map_err(|err| anyhow::anyhow!(err))?;
+            serde_json::from_str(&message).map_err(|err| OkxError::SerdeError(err))?;
 
         if let Some(handler) = self.handler() {
             handler.handle_response(event_resp).await;
@@ -307,33 +305,33 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
         *writer = state
     }
 
-    pub async fn send(&self, req: impl Serialize) -> anyhow::Result<()> {
+    pub async fn send(&self, req: impl Serialize) -> Result<()> {
         if self.state() != ConnState::Connected {
-            return Err(anyhow::anyhow!("not connected"));
+            return Err(OkxError::NotConnect);
         }
         match serde_json::to_string(&req) {
             Ok(val) => {
                 if let Err(err) = self.send_chan.send(OkxMessage::Message(val)).await {
                     error!("send message error:{}", err.to_string());
-                    return Err(anyhow::anyhow!(err));
+                    return Err(OkxError::NotConnect);
                 }
 
                 Ok(())
             }
             Err(err) => {
                 error!("unmarshal message error:{}", err.to_string());
-                return Err(anyhow::anyhow!(err));
+                return Err(err.into());
             }
         }
     }
 
-    pub async fn send_request(&self, op: &str, req: impl Serialize) -> anyhow::Result<()> {
+    pub async fn send_request(&self, op: &str, req: impl Serialize) -> Result<()> {
         let req_val;
         match serde_json::to_value(&req) {
             Ok(val) => req_val = val,
             Err(err) => {
                 error!("unmarshal request error:{}", err.to_string());
-                return Err(anyhow::anyhow!(err));
+                return Err(err.into());
             }
         }
 
@@ -344,11 +342,11 @@ impl<THandler: Handler + 'static> WebsocketConn<THandler> {
         .await
     }
 
-    pub async fn close(&self) -> anyhow::Result<()> {
+    pub async fn close(&self) -> Result<()> {
         self.send_chan
             .send(OkxMessage::Close)
             .await
-            .map_err(|err| anyhow::anyhow!(err))
+            .map_err(|_err| OkxError::NotConnect)
     }
 }
 

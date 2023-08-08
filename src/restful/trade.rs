@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use crate::apikey::OkxAccountClient;
 use super::models::*;
+use crate::okx_error::*;
 
 #[derive(Serialize, Debug, Deserialize)]
 pub struct OrdersPendingFilter {
@@ -186,6 +186,9 @@ impl OkxAccountClient {
 
     pub async fn trade_batch_order(&self, order_obj: Vec<OrderRequestInfo>) -> Result<RestApi<TradeOrder>>
     {
+        if order_obj.len() > 20 {
+            return Err(OkxError::RateLimit);
+        }
         Ok(self
             .post::<RestApi<TradeOrder>>("/api/v5/trade/batch-orders", &order_obj)
             .await?)

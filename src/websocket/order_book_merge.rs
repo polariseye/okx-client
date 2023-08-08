@@ -6,6 +6,7 @@ use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use crate::okx_error::*;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct OrderBookItem {
@@ -111,10 +112,10 @@ impl OrderBookMerge {
 }
 
 impl OrderBookItem {
-    pub fn new(data: &[String]) -> anyhow::Result<Self> {
-        let price = Decimal::from_str(&data[0]).map_err(|err| anyhow::anyhow!(err))?;
-        let amount = Decimal::from_str(&data[1]).map_err(|err| anyhow::anyhow!(err))?;
-        let order_count = u32::from_str(&data[3]).map_err(|err| anyhow::anyhow!(err))?;
+    pub fn new(data: &[String]) -> Result<Self> {
+        let price = Decimal::from_str(&data[0]).map_err(|err| OkxError::DecimalError(err))?;
+        let amount = Decimal::from_str(&data[1]).map_err(|err| OkxError::DecimalError(err))?;
+        let order_count = u32::from_str(&data[3]).map_err(|err| OkxError::ParseIntError(err))?;
         Ok(Self {
             price,
             amount,

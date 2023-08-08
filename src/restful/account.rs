@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use anyhow::Result;
+use crate::okx_error::*;
 use crate::apikey::OkxAccountClient;
 use crate::InstType;
 use crate::restful::models::AccountBalance;
@@ -8,7 +8,7 @@ use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverag
 
 impl OkxAccountClient {
     pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<RestApi<AccountBalance>> {
-        //  //api/v5/account/balance
+        //  /api/v5/account/balance
         let mut params: BTreeMap<String, String> = BTreeMap::new();
         if let Some(val) = ccy_list {
             params.insert("ccy".into(), val.join(","));
