@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use crate::api_enum::APiEnum;
 use crate::okx_error::*;
 use crate::apikey::OkxAccountClient;
 use crate::InstType;
@@ -8,6 +9,7 @@ use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverag
 
 impl OkxAccountClient {
     pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<Vec<AccountBalance>> {
+        self.limit_mgr().check_limit(APiEnum::AccountBalance as u32, 1, 10, 2)?;
         //  /api/v5/account/balance
         let mut params: BTreeMap<String, String> = BTreeMap::new();
         if let Some(val) = ccy_list {
@@ -34,7 +36,8 @@ impl OkxAccountClient {
         // pos_side: impl Into<String>,
     ) -> Result<Vec<AccountPositions>>
     {
-        //  /api/index/v3/BTC-USD/constituents
+        //  /api/v5/account/positions
+        self.limit_mgr().check_limit(APiEnum::AccountPositions as u32, 1, 10, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         if let Some(inst_type) = inst_type {
@@ -68,7 +71,9 @@ impl OkxAccountClient {
         pos_side: Option<impl Into<String>>,
     ) -> Result<AccountSetLeverage>
     {
-        //  /api/index/v3/BTC-USD/constituents
+        //  /api/v5/account/set-leverage
+        self.limit_mgr().check_limit(APiEnum::AccountSetLeverage as u32, 1, 20, 2)?;
+
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         if let Some(inst_id) = inst_id {
@@ -110,7 +115,9 @@ impl OkxAccountClient {
         // pos_side: impl Into<String>,
     ) -> Result<Vec<AccountPositionsHistory>>
     {
-        //  /api/index/v3/BTC-USD/constituents
+        //  /api/v5/account/positions-history
+        self.limit_mgr().check_limit(APiEnum::AccountPositionsHistory as u32, 1, 1, 10)?;
+
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         if let Some(inst_type) = inst_type {

@@ -19,4 +19,8 @@ pub enum OkxError {
     NotConnect,
     #[error("okx response error. code:{code} message:{message}")]
     RemoteError{ code: i32, message: String},
+    #[error("order size out of range. max 20")]
+    OutOfMaxOrderSize,
+    #[error("all order must have same inst id")]
+    MustHaveSameInstId,
 }

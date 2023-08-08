@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use crate::api_enum::APiEnum;
 use crate::okx_error::*;
 use super::models::{MarketBooks, MarketTicker, MarketTickers, RestApi, Trade};
 use crate::apikey::OkxPublicClient;
@@ -14,6 +15,7 @@ impl OkxPublicClient {
         inst_family: Option<impl Into<String>>,
     ) -> Result<Vec<MarketTickers>>
     {
+        self.limit_mgr().check_limit(APiEnum::MarketTickers as u32, 1, 20, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         if let Some(uly) = uly {
@@ -36,7 +38,8 @@ impl OkxPublicClient {
     // GET /api/v5/market/ticker
     pub async fn market_ticker(&self, inst_id: impl Into<String>) -> Result<MarketTicker>
     {
-        //  /api/index/v3/BTC-USD/constituents
+        //  /api/v5/market/ticker
+        self.limit_mgr().check_limit(APiEnum::MarketTicker as u32, 1, 20, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         params.insert("instId".into(), inst_id.into());
@@ -49,6 +52,7 @@ impl OkxPublicClient {
     /// 获取交易产品公共成交数据
     /// GET /api/v5/market/trades
     pub async fn market_trades(&self, inst_id: impl Into<String>, limit: usize) -> Result<Vec<Trade>>{
+        self.limit_mgr().check_limit(APiEnum::MarketTrades as u32, 1, 100, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         // /api/v5/market/trades
@@ -60,13 +64,12 @@ impl OkxPublicClient {
             .await?.to_result()
     }
 
-    // 获取深度
-
-    // api/v5/market/books
-
+    /// 获取深度
+    /// api/v5/market/books
     pub async fn market_books(&self, inst_id: impl Into<String>, sz: Option<impl Into<String>>) -> Result<Vec<MarketBooks>>
     {
-        //  /api/index/v3/BTC-USD/constituents
+        // /api/v5/market/books
+        self.limit_mgr().check_limit(APiEnum::MarketBooks as u32, 1, 40, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         params.insert("instId".into(), inst_id.into());

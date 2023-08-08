@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use crate::api_enum::APiEnum;
 use crate::okx_error::*;
 use super::models::{Instrument, RestApi};
 use crate::apikey::OkxPublicClient;
@@ -19,6 +20,7 @@ impl OkxPublicClient {
     ) -> Result<Vec<Instrument>>
     {
         //  /api/index/v3/BTC-USD/constituents
+        self.limit_mgr().check_limit_with_inst_type(APiEnum::PublicInstruments as u32, inst_type, 1, 20, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         if let Some(uly) = uly {

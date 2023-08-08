@@ -1,30 +1,38 @@
 use std::sync::Arc;
 use serde::Deserialize;
+use crate::utils::request_limit::LimitMgr;
 use crate::websocket::{AccountWebsocket, PublicWebsocket};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub struct OkxPublicClient {
     pub base_config: OkxConfig,
+    limit_mgr: Arc<LimitMgr>,
 }
 
 impl OkxPublicClient {
     pub fn new(base_config: OkxConfig) -> Self {
         Self{
-            base_config
+            base_config,
+            limit_mgr: Arc::new(LimitMgr::new()),
         }
     }
 
     pub async fn start_websocket(&self) -> Arc<PublicWebsocket> {
         PublicWebsocket::start(&self.base_config.pub_websocket_domain).await
     }
+
+    pub(crate) fn limit_mgr(&self) -> &LimitMgr {
+        &self.limit_mgr
+    }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug)]
 pub struct OkxAccountClient {
     pub api_key: String,
     pub secret_key: String,
     pub passphrase: String,
     pub base_config: OkxConfig,
+    limit_mgr: LimitMgr,
 }
 
 impl OkxAccountClient {
@@ -39,11 +47,16 @@ impl OkxAccountClient {
             api_key: api_key.into(),
             secret_key: secret_key.into(),
             passphrase: passphrase.into(),
+            limit_mgr: LimitMgr::new(),
         }
     }
 
     pub async fn start_websocket(&self) -> Arc<AccountWebsocket> {
         AccountWebsocket::start(&self.api_key, &self.secret_key, &self.passphrase, &self.base_config.private_websocket_domain).await
+    }
+
+    pub(crate) fn limit_mgr(&self) -> &LimitMgr {
+        &self.limit_mgr
     }
 }
 

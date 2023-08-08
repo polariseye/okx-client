@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
+use crate::api_enum::APiEnum;
 use crate::apikey::OkxAccountClient;
 use super::models::*;
 use crate::okx_error::*;
@@ -29,7 +30,8 @@ impl OkxAccountClient {
         filter: OrdersPendingFilter,
     ) -> Result<Vec<TradeOrdersPending>>
     {
-        //  /api/index/v3/BTC-USD/constituents
+        //  /api/v5/trade/orders-pending
+        self.limit_mgr().check_limit(APiEnum::TradeOrdersPending as u32, 1, 60, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         if let Some(inst_type) = &filter.inst_type {
@@ -89,6 +91,7 @@ impl OkxAccountClient {
     ) -> Result<Vec<TradeOrdersHistory>>
     {
         //  /api/index/v3/BTC-USD/constituents
+        self.limit_mgr().check_limit(APiEnum::TradeOrdersHistory as u32, 1, 40, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
         params.insert("instType".into(), inst_type.into());
@@ -149,6 +152,7 @@ impl OkxAccountClient {
     ) -> Result<Vec<TradeCancelBatchOrders>>
     {
         let inst_id = inst_id.into();
+        self.limit_mgr().check_limit_with_inst_id(APiEnum::TradeCancelBatchOrders as u32,  &inst_id, (order_ids.len() + cl_ord_id.len()) as u32, 300, 2)?;
         let mut params_vec = Vec::new();
         for item in order_ids {
             let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -173,30 +177,53 @@ impl OkxAccountClient {
             .await?.to_result()
     }
 
-    // 下单接口
-
+    /// 下单接口
+    /// 限速：60次/2s
+    /// 跟单交易带单合约的限速：1次/2s
+    /// 限速规则（期权以外）：UserID + Instrument ID
+    /// 限速规则（只限期权）：UserID + Instrument Family
     pub async fn trade_order(&self, order_obj: OrderRequestInfo) -> Result<TradeOrder>
     {
+        self.limit_mgr().check_limit_with_inst_id(APiEnum::TradePlaceOrder as u32,  &order_obj.inst_id, 1, 60, 2)?;
+
         self
             .post::<RestApi<TradeOrder>>("/api/v5/trade/order", &order_obj)
             .await?.to_result_one()
     }
 
-    // 下单接口
-
-    pub async fn trade_batch_order(&self, order_obj: Vec<OrderRequestInfo>) -> Result<Vec<TradeOrder>>
+    /// 下单接口
+    /// 限速：300个/2s
+    /// 跟单交易带单合约的限速：1个/2s
+    /// 限速规则（期权以外）：UserID + Instrument ID
+    /// 限速规则（只限期权）：UserID + Instrument Family
+    /// 与其他限速按接口调用次数不同，该接口限速按订单的总个数限速。如果单次批量请求中只有一个元素，则算在单个`下单`限速中。
+    pub async fn trade_batch_order(&self, inst_id: &str, order_obj: Vec<OrderRequestInfo>) -> Result<Vec<TradeOrder>>
     {
         if order_obj.len() > 20 {
-            return Err(OkxError::RateLimit);
+            return Err(OkxError::OutOfMaxOrderSize);
         }
+        for item in &order_obj {
+            if item.inst_id != item.inst_id {
+                return Err(OkxError::MustHaveSameInstId);
+            }
+        }
+        if order_obj.len() == 1 {
+            self.limit_mgr().check_limit_with_inst_id(APiEnum::TradePlaceOrder as u32,  &inst_id, 1, 60, 2)?;
+        } else {
+            self.limit_mgr().check_limit_with_inst_id(APiEnum::TradePlaceBatchOrders as u32,  &inst_id, order_obj.len() as u32, 300, 2)?;
+        }
+
         self
             .post::<RestApi<TradeOrder>>("/api/v5/trade/batch-orders", &order_obj)
             .await?.to_result()
     }
 
-    //     获取订单信息
-    // 查订单信息
-    // GET /api/v5/trade/order
+    ///  获取订单信息
+    /// 查订单信息
+    /// GET /api/v5/trade/order
+    /// 限速：60次/2s
+    /// 限速规则（期权以外）：UserID + Instrument ID
+    /// 限速规则（只限期权）：UserID + Instrument Family
     pub async fn get_trade_order<T>(
         &self,
         inst_id: T,
@@ -206,9 +233,11 @@ impl OkxAccountClient {
     where
         T: Into<String>,
     {
+        let inst_id = inst_id.into();
+        self.limit_mgr().check_limit_with_inst_id(APiEnum::TradeGetOrder as u32,  &inst_id, 1, 60, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
-        params.insert("instId".into(), inst_id.into());
+        params.insert("instId".into(), inst_id);
 
         if let Some(ord_id) = ord_id {
             params.insert("ordId".into(), ord_id.into());
@@ -223,9 +252,11 @@ impl OkxAccountClient {
             .await?.to_result_one_opt()
     }
 
-    //     修改订单
-    // 修改当前未成交的挂单
-    // POST /api/v5/trade/amend-order
+    ///     修改订单
+    /// 修改当前未成交的挂单
+    /// 限速：60次/2s
+    /// 限速规则：UserID + Instrument ID
+    /// POST /api/v5/trade/amend-order
 
     pub async fn trade_amend_order<T>(
         &self,
@@ -243,10 +274,11 @@ impl OkxAccountClient {
         T: Into<String>,
     {
         // let mut params_vec = Vec::new();
-
+        let inst_id = inst_id.into();
+        self.limit_mgr().check_limit_with_inst_id(APiEnum::TradeAmendOrder as u32,  &inst_id, 1, 60, 2)?;
         let mut params: BTreeMap<String, String> = BTreeMap::new();
 
-        params.insert("instId".into(), inst_id.into());
+        params.insert("instId".into(), inst_id);
 
         if let Some(cxl_on_fail) = cxl_on_fail {
             params.insert("cxlOnFail".into(), cxl_on_fail.into());
