@@ -1,6 +1,7 @@
 // use serde::de;
 use serde::{Deserialize, Serialize};
 use crate::models::de_float_from_str;
+use crate::OkxError;
 use crate::utils::{from_str, to_str};
 
 ///////////////////
@@ -17,6 +18,34 @@ pub struct RestApi<T> {
 impl <T> RestApi<T> {
     pub fn is_success(&self) -> bool {
         self.code == 0
+    }
+
+    pub fn to_result(self) -> Result<Vec<T>, OkxError> {
+        if self.is_success() {
+            Ok(self.data)
+        } else {
+            Err(OkxError::RemoteError { code: self.code, message: self.msg})
+        }
+    }
+
+    pub fn to_result_one(self) -> Result<T, OkxError> where T: Clone {
+        if self.is_success() {
+            Ok(self.data[0].clone())
+        } else {
+            Err(OkxError::RemoteError { code: self.code, message: self.msg})
+        }
+    }
+
+    pub fn to_result_one_opt(self) -> Result<Option<T>, OkxError> where T: Clone {
+        if self.is_success() {
+            if self.data.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(self.data[0].clone()))
+            }
+        } else {
+            Err(OkxError::RemoteError { code: self.code, message: self.msg})
+        }
     }
 }
 

@@ -7,16 +7,16 @@ use crate::restful::models::AccountBalance;
 use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverage, RestApi};
 
 impl OkxAccountClient {
-    pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<RestApi<AccountBalance>> {
+    pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<Vec<AccountBalance>> {
         //  /api/v5/account/balance
         let mut params: BTreeMap<String, String> = BTreeMap::new();
         if let Some(val) = ccy_list {
             params.insert("ccy".into(), val.join(","));
         }
 
-        Ok(self
+        self
             .get::<RestApi<AccountBalance>>("/api/v5/account/balance", &params)
-            .await?)
+            .await?.to_result()
     }
 
     // 检查仓位
@@ -32,7 +32,7 @@ impl OkxAccountClient {
         pos_id: Option<impl Into<String>>,
         // impl Into<String>
         // pos_side: impl Into<String>,
-    ) -> Result<RestApi<AccountPositions>>
+    ) -> Result<Vec<AccountPositions>>
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -49,9 +49,9 @@ impl OkxAccountClient {
             params.insert("posId".into(), pos_id.into());
         }
 
-        Ok(self
+        self
             .get::<RestApi<AccountPositions>>("/api/v5/account/positions", &params)
-            .await?)
+            .await?.to_result()
     }
 
     // 获取未成交订单列表
@@ -61,13 +61,12 @@ impl OkxAccountClient {
     // POST  /api/v5/account/set-leverage
     pub async fn account_set_leverage(
         &self,
-
         inst_id: Option<impl Into<String>>,
         ccy: Option<impl Into<String>>,
         lever: impl Into<String>,
         mgn_mode: impl Into<String>,
         pos_side: Option<impl Into<String>>,
-    ) -> Result<RestApi<AccountSetLeverage>>
+    ) -> Result<AccountSetLeverage>
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -87,9 +86,9 @@ impl OkxAccountClient {
         params.insert("lever".into(), lever.into());
         params.insert("mgnMode".into(), mgn_mode.into());
 
-        Ok(self
+        self
             .post::<RestApi<AccountSetLeverage>>("/api/v5/account/set-leverage", &params)
-            .await?)
+            .await?.to_result_one()
     }
 
     // 查看历史持仓信息
@@ -109,7 +108,7 @@ impl OkxAccountClient {
         limit: Option<impl Into<String>>,
         // impl Into<String>
         // pos_side: impl Into<String>,
-    ) -> Result<RestApi<AccountPositionsHistory>>
+    ) -> Result<Vec<AccountPositionsHistory>>
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -142,8 +141,8 @@ impl OkxAccountClient {
             params.insert("limit".into(), limit.into());
         }
 
-        Ok(self
+        self
             .get::<RestApi<AccountPositionsHistory>>("/api/v5/account/positions-history", &params)
-            .await?)
+            .await?.to_result()
     }
 }

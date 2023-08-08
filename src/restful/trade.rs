@@ -27,7 +27,7 @@ impl OkxAccountClient {
     pub async fn trade_orders_pending(
         &self,
         filter: OrdersPendingFilter,
-    ) -> Result<RestApi<TradeOrdersPending>>
+    ) -> Result<Vec<TradeOrdersPending>>
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -64,9 +64,9 @@ impl OkxAccountClient {
             params.insert("limit".into(), limit.into());
         }
 
-        Ok(self
+        self
             .get::<RestApi<TradeOrdersPending>>("/api/v5/trade/orders-pending", &params)
-            .await?)
+            .await?.to_result()
     }
 
     //  获取历史订单记录（近七天）
@@ -86,7 +86,7 @@ impl OkxAccountClient {
         begin: Option<impl Into<String>>,
         end: Option<impl Into<String>>,
         limit: Option<impl Into<String>>,
-    ) -> Result<RestApi<TradeOrdersHistory>>
+    ) -> Result<Vec<TradeOrdersHistory>>
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -134,9 +134,9 @@ impl OkxAccountClient {
             params.insert("limit".into(), limit.into());
         }
 
-        Ok(self
+        self
             .get::<RestApi<TradeOrdersHistory>>("/api/v5/trade/orders-history", &params)
-            .await?)
+            .await?.to_result()
     }
 
     // 取消未成交订单
@@ -146,7 +146,7 @@ impl OkxAccountClient {
         inst_id: impl Into<String>,
         order_ids: &[String],
         cl_ord_id: &[String],
-    ) -> Result<RestApi<TradeCancelBatchOrders>>
+    ) -> Result<Vec<TradeCancelBatchOrders>>
     {
         let inst_id = inst_id.into();
         let mut params_vec = Vec::new();
@@ -165,33 +165,33 @@ impl OkxAccountClient {
             params_vec.push(params);
         }
 
-        Ok(self
+        self
             .post_vec::<RestApi<TradeCancelBatchOrders>>(
                 "/api/v5/trade/cancel-batch-orders",
                 &params_vec,
             )
-            .await?)
+            .await?.to_result()
     }
 
     // 下单接口
 
-    pub async fn trade_order(&self, order_obj: OrderRequestInfo) -> Result<RestApi<TradeOrder>>
+    pub async fn trade_order(&self, order_obj: OrderRequestInfo) -> Result<TradeOrder>
     {
-        Ok(self
+        self
             .post::<RestApi<TradeOrder>>("/api/v5/trade/order", &order_obj)
-            .await?)
+            .await?.to_result_one()
     }
 
     // 下单接口
 
-    pub async fn trade_batch_order(&self, order_obj: Vec<OrderRequestInfo>) -> Result<RestApi<TradeOrder>>
+    pub async fn trade_batch_order(&self, order_obj: Vec<OrderRequestInfo>) -> Result<Vec<TradeOrder>>
     {
         if order_obj.len() > 20 {
             return Err(OkxError::RateLimit);
         }
-        Ok(self
+        self
             .post::<RestApi<TradeOrder>>("/api/v5/trade/batch-orders", &order_obj)
-            .await?)
+            .await?.to_result()
     }
 
     //     获取订单信息
@@ -199,11 +199,10 @@ impl OkxAccountClient {
     // GET /api/v5/trade/order
     pub async fn get_trade_order<T>(
         &self,
-
         inst_id: T,
         ord_id: Option<T>,
         cl_ord_id: Option<T>,
-    ) -> Result<RestApi<TradeOrderGet>>
+    ) -> Result<Option<TradeOrderGet>>
     where
         T: Into<String>,
     {
@@ -219,9 +218,9 @@ impl OkxAccountClient {
             params.insert("clOrdId".into(), cl_ord_id.into());
         }
 
-        Ok(self
+        self
             .get::<RestApi<TradeOrderGet>>("/api/v5/trade/order", &params)
-            .await?)
+            .await?.to_result_one_opt()
     }
 
     //     修改订单
@@ -239,7 +238,7 @@ impl OkxAccountClient {
         req_id: Option<T>,
         new_sz: Option<T>,
         new_px: Option<T>,
-    ) -> Result<RestApi<TradeAmendOrder>>
+    ) -> Result<TradeAmendOrder>
     where
         T: Into<String>,
     {
@@ -273,8 +272,8 @@ impl OkxAccountClient {
             params.insert("newPx".into(), new_px.into());
         }
 
-        Ok(self
+        self
             .post::<RestApi<TradeAmendOrder>>("/api/v5/trade/amend-order", &params)
-            .await?)
+            .await?.to_result_one()
     }
 }

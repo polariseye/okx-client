@@ -16,5 +16,7 @@ pub enum OkxError {
     #[error("int convert error: {0:?}")]
     ParseIntError(#[from]ParseIntError),
     #[error("websocket not connected")]
-    NotConnect
+    NotConnect,
+    #[error("okx response error. code:{code} message:{message}")]
+    RemoteError{ code: i32, message: String},
 }

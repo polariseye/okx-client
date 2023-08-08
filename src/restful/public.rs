@@ -16,7 +16,7 @@ impl OkxPublicClient {
         inst_id: Option<impl Into<String>>,
         // impl Into<String>
         // pos_side: impl Into<String>,
-    ) -> Result<RestApi<Instrument>>
+    ) -> Result<Vec<Instrument>>
     {
         //  /api/index/v3/BTC-USD/constituents
         let mut params: BTreeMap<String, String> = BTreeMap::new();
@@ -35,9 +35,9 @@ impl OkxPublicClient {
 
         params.insert("instType".into(), inst_type.into());
 
-        Ok(self
+        self
             .get::<RestApi<Instrument>>("/api/v5/public/instruments", &params)
-            .await?)
+            .await?.to_result()
     }
 }
 
