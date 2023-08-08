@@ -2,12 +2,23 @@ use std::collections::BTreeMap;
 use crate::api_enum::APiEnum;
 use crate::okx_error::*;
 use crate::apikey::OkxAccountClient;
-use crate::InstType;
+use crate::{AccountConfig, InstType};
 use crate::restful::models::AccountBalance;
 
 use super::models::{AccountPositions, AccountPositionsHistory, AccountSetLeverage, RestApi};
 
 impl OkxAccountClient {
+    /// 账户配置信息
+    pub async fn account_config(&self) -> Result<AccountConfig>{
+        self.limit_mgr().check_limit(APiEnum::AccountConfig as u32, 1, 5, 2)?;
+
+        let params: BTreeMap<String, String> = BTreeMap::new();
+
+        self
+            .get::<RestApi<AccountConfig>>("/api/v5/account/config", &params)
+            .await?.to_result_one()
+    }
+
     pub async fn account_balance(&self, ccy_list: Option<Vec<String>>) -> Result<Vec<AccountBalance>> {
         self.limit_mgr().check_limit(APiEnum::AccountBalance as u32, 1, 10, 2)?;
         //  /api/v5/account/balance

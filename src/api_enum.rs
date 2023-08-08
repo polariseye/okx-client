@@ -3,6 +3,7 @@ pub enum APiEnum {
     AccountPositions,
     AccountSetLeverage,
     AccountPositionsHistory,
+    AccountConfig,
     TradeOrdersPending,
     TradeOrdersHistory,
     // 限速：300个/2s

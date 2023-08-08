@@ -825,6 +825,113 @@ pub struct Trade {
     pub ts: i64,
 }
 
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
+pub enum GreeksType {
+    /// 币本位
+    #[serde(rename="PA")]
+    Pa,
+    /// 美元本位
+    #[serde(rename="BS")]
+    Bs
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AccountConfig {
+    /// 当前请求的账户ID，账户uid和app上的一致
+    pub uid: String,
+    /// 当前请求的母账户ID
+    /// 如果 uid = mainUid，代表当前账号为母账户；如果 uid != mainUid，代表当前账户为子账户。
+    #[serde(rename = "mainUid")]
+    pub main_uid: String,
+    /// 账户层级
+    /// 1：简单交易模式，2：单币种保证金模式 ，3：跨币种保证金模式 ，4：组合保证金模式
+    #[serde(rename = "acctLv", serialize_with="to_str",deserialize_with="from_str")]
+    pub acct_lv: u32,
+    /// 持仓方式
+    /// long_short_mode：开平仓模式 net_mode：买卖模式
+    /// 仅适用交割/永续
+    #[serde(rename = "posMode")]
+    pub pos_mode: String,
+    /// 是否自动借币
+    /// true：自动借币 false：非自动借币
+    #[serde(rename = "autoLoan")]
+    pub auto_loan: bool,
+    /// 当前希腊字母展示方式
+    /// PA：币本位 BS：美元本位
+    #[serde(rename = "greeksType")]
+    pub greeks_type: GreeksType,
+    /// 当前在平台上真实交易量的用户等级，例如 lv1
+    #[serde(serialize_with="to_str",deserialize_with="from_str")]
+    pub level: u32,
+    /// 特约用户的临时体验用户等级，例如 lv3
+    #[serde(rename = "levelTmp")]
+    pub level_tmp: String,
+    /// 衍生品的逐仓保证金划转模式
+    /// automatic：开仓划转 autonomy：自主划转
+    #[serde(rename = "ctIsoMode")]
+    pub ct_iso_mode: String,
+    /// 币币杠杆的逐仓保证金划转模式
+    /// automatic：开仓划转 quick_margin：一键借币（对于新的账户，包括新的子账户，有些默认是开仓划转，另外的默认是一键借币）
+    #[serde(rename = "mgnIsoMode")]
+    pub mgn_iso_mode: String,
+    /// 现货对冲类型
+    /// 1：现货对冲模式U模式 2：现货对冲模式币模式 3：非现货对冲模式
+    /// 适用于组合保证金模式
+    #[serde(rename = "spotOffsetType")]
+    pub spot_offset_type: String,
+    /// 用户角色。
+    /// 0：普通用户；1：带单者；2：跟单者
+    #[serde(rename = "roleType")]
+    pub role_type: String,
+    /// 当前账号已经设置的带单合约，仅适用于带单者
+    #[serde(rename = "traderInsts")]
+    pub trader_insts: Vec<String>,
+    /// 是否开通期权交易
+    /// 0 未开通，1 已经开通
+    #[serde(rename = "opAuth")]
+    pub op_auth: String,
+    /// 母账户KYC等级
+    /// 0: 未认证 1: 已完成 level 1 认证, 2: 已完成 level 2 认证, 3: 已完成 level 3认证.
+    /// 如果请求来自子账户, kycLv 为其母账户的等级.
+    /// 如果请求来自母账户, kycLv 为当前请求的母账户等级.
+    #[serde(rename = "kycLv")]
+    pub kyc_lv: String,
+    /// 当前请求API key的备注名，不超过50位字母（区分大小写）或数字，可以是纯字母或纯数字。
+    pub label: String,
+    /// 当前请求API key绑定的ip地址，多个ip用半角逗号隔开，如：117.37.203.58,117.37.203.57。
+    /// 如果没有绑定ip，会返回空字符串""
+    pub ip: String,
+    /// 当前请求的 API key权限 read_only：只读；trade ：交易；withdraw: 提币
+    pub perm: String,
+}
+impl AccountConfig {
+    pub fn permission(&self) -> Vec<ApiKeyPermission>{
+        let mut result = vec![];
+        for item in self.perm.split(",") {
+            match item {
+                "read_only" => result.push(ApiKeyPermission::ReadOnly),
+                "trade" => result.push(ApiKeyPermission::Trade),
+                "withdraw" => result.push(ApiKeyPermission::Withdraw),
+                _ => {
+
+                }
+            }
+        }
+
+        result
+    }
+
+    pub fn is_main_account(&self) -> bool {
+        self.main_uid == self.uid
+    }
+}
+
+pub enum ApiKeyPermission{
+    ReadOnly,
+    Trade,
+    Withdraw
+}
+
 macro_rules! impl_to_str {
     ($($arg:tt)*) => {
         $(
