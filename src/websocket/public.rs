@@ -6,7 +6,7 @@ use log::*;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use crate::restful::InstType;
-use crate::Trade;
+use crate::{Instrument, Trade};
 use crate::websocket::{EventResponse, Handler, WebsocketConn};
 use crate::websocket::order_book_merge::{OrderBookMergeMgr};
 use crate::utils::{from_str, to_str};
@@ -72,6 +72,8 @@ pub struct PublicWebsocket {
     trade_subscribed: Mutex<Vec<String>>,
     orderbook_subscribed: Mutex<Vec<OrderBookSubscribeInfo>>,
     orderbook_merge_mgr: OrderBookMergeMgr,
+
+    trade_symbol_change_subscribed: Mutex<Vec<InstType>>,
 }
 
 impl PublicWebsocket {
@@ -83,6 +85,7 @@ impl PublicWebsocket {
             trade_subscribed: Mutex::new(vec![]),
             orderbook_subscribed: Mutex::new(vec![]),
             orderbook_merge_mgr: OrderBookMergeMgr::new(),
+            trade_symbol_change_subscribed: Mutex::new(vec![]),
         });
 
         let week = Arc::downgrade(&result);
@@ -261,11 +264,59 @@ impl PublicWebsocket {
 
     }
 
+    pub async fn trade_symbol_change_subscribe(&self, inst_type: InstType){
+        {
+            let mut writer = self.trade_symbol_change_subscribed.lock().unwrap();
+            if writer.iter().any(|item| *item == inst_type) {
+                return;
+            }
+            writer.push(inst_type.clone());
+        }
+
+        self.trade_symbol_change_subscribe_detail(inst_type).await
+    }
+    async fn trade_symbol_change_subscribe_detail(&self, inst_type: InstType){
+        let req = TradeSymbolChangeSubscribeInfo {
+            channel: "instruments".to_string(),
+            inst_type,
+        };
+
+        let _ = self.conn().send_request("subscribe", &req).await;
+    }
+
+    pub async fn trade_symbol_unsubscribe(&self, inst_type: InstType){
+        {
+            let mut writer = self.trade_symbol_change_subscribed.lock().unwrap();
+            for (index, item) in writer.deref().iter().enumerate() {
+                if *item == inst_type {
+                    writer.remove(index);
+                    break
+                }
+            }
+        }
+
+        self.trade_symbol_unsubscribe_detail(inst_type).await
+    }
+    async fn trade_symbol_unsubscribe_detail(&self, inst_type: InstType){
+        let req = TradeSymbolChangeSubscribeInfo {
+            channel: "instruments".to_string(),
+            inst_type,
+        };
+
+        let _ = self.conn().send_request("unsubscribe", &req).await;
+    }
+
     pub fn orderbook_merge(&self) -> &OrderBookMergeMgr {
         &self.orderbook_merge_mgr
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct TradeSymbolChangeSubscribeInfo{
+    channel: String,
+    #[serde(rename="instType")]
+    inst_type: InstType,
+}
 #[async_trait]
 impl Handler for PublicWebsocket {
     async fn on_connected(&self) {
@@ -289,6 +340,18 @@ impl Handler for PublicWebsocket {
         };
         for item in orderbook_subscribed {
             self.orderbook_subscribe_detail(&item.inst_id, item.size).await;
+        }
+
+        let trade_symbol_change_subscribed = {
+            let lock_val = self.trade_symbol_change_subscribed.lock().unwrap();
+            let mut result = vec![];
+            for item in lock_val.iter() {
+                result.push(item.clone());
+            }
+            result
+        };
+        for item in trade_symbol_change_subscribed {
+            self.trade_symbol_change_subscribe(item).await;
         }
 
         for item in self.handlers().values() {
@@ -432,6 +495,22 @@ impl Handler for PublicWebsocket {
                         }
                     }
                 } else {
+                    debug!("receive orderbook event. but have no data");
+                }
+            }
+            "instruments" => {
+                if let Some(data) = resp.data {
+                    match serde_json::from_value(data) {
+                        Ok(instrument_data) => {
+                            for item in handlers.values() {
+                                item.instrument_event(&instrument_data).await;
+                            }
+                        }
+                        Err(err) => {
+                            error!("unmarshal instrument data error:{}", err.to_string());
+                        }
+                    }
+                } else {
                     debug!("receive trade event. but have no data");
                 }
             }
@@ -453,6 +532,7 @@ pub trait PublicHandler: Send + Sync {
     async fn ticker_event(&self, arg: &TickerEventArg, events: &Vec<TickerEvent>){}
     async fn trade_event(&self, arg:&TradeEventArg, events: &Vec<TradeEvent>){}
     async fn orderbook_event(&self, arg: &OrderBookEventArg, order_book_type: OrderBookType, size: OrderBookSize, events: &Vec<OrderBookEvent>){}
+    async fn instrument_event(&self, events: &Vec<Instrument>){}
 
     async fn handle_response(&self, resp: &EventResponse){}
 }
