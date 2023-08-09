@@ -307,11 +307,11 @@ pub struct TradeOrdersPending {
     pub acc_fill_sz: String,
 
     pub fill_px: String,
-    #[serde(rename = "tradeId", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
-    pub trade_id: Option<i64>,
+    #[serde(rename = "tradeId", serialize_with="to_str",deserialize_with="from_str")]
+    pub trade_id: i64,
     pub fill_sz: String,
-    #[serde(rename = "fillTime", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
-    pub fill_time: Option<i64>,
+    #[serde(rename = "fillTime", serialize_with="to_str",deserialize_with="from_str")]
+    pub fill_time: i64,
     pub avg_px: String,
     pub state: OrderState,
 
