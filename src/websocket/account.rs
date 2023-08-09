@@ -206,14 +206,8 @@ impl AccountWebsocket {
 
         let _ = self.conn().send_request("unsubscribe", &req).await;
     }
-}
 
-#[async_trait]
-impl Handler for AccountWebsocket {
-    async fn on_connected(&self) {
-        println!("connected");
-        self.login().await;
-
+    async fn init_when_finish_auth(&self){
         if self.is_account_subscribed.load(Ordering::SeqCst){
             self.account_subscribe_detail().await;
         }
@@ -222,6 +216,14 @@ impl Handler for AccountWebsocket {
         for item in order_subscribe_list {
             self.order_subscribe_detail(item).await;
         }
+    }
+}
+
+#[async_trait]
+impl Handler for AccountWebsocket {
+    async fn on_connected(&self) {
+        println!("connected");
+        self.login().await;
 
         for item in self.handlers().values() {
             item.on_connected().await;
@@ -241,7 +243,26 @@ impl Handler for AccountWebsocket {
             item.handle_response(&resp).await;
         }
 
-        debug!("receive. code:{} msg:{} action:{}", &resp.code, &resp.msg, &resp.action);
+        debug!("receive. event:{} code:{} msg:{} action:{}", &resp.event, &resp.code, &resp.msg, &resp.action);
+        match resp.event.as_str() {
+            "login" => {
+                if resp.code == "0" {
+                    self.init_when_finish_auth().await;
+
+                    for item in handlers.values() {
+                        item.on_finish_auth().await;
+                    }
+                } else {
+                    error!("login fail received error. code:{} msg:{}", &resp.code, &resp.msg);
+                }
+
+                return;
+            },
+            _ => {
+
+            }
+        }
+
         if resp.code != "0" {
             error!("receive error. code:{} msg:{}", &resp.code, &resp.msg);
             return;
@@ -594,6 +615,7 @@ pub trait AccountHandler: Send + Sync {
     fn id(&self) -> String;
     async fn on_connected(&self){}
     async fn on_disconnected(&self){}
+    async fn on_finish_auth(&self){}
     async fn account_event(&self, events: &Vec<AccountEvent>){}
     async fn order_event(&self, events: &Vec<OrderEvent>){}
     async fn handle_response(&self, resp: &EventResponse){}

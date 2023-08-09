@@ -24,21 +24,21 @@ async fn account_test(){
         "B03846A56AEC13A169E3E4C67F11895F",
         "H7ZubBD9FAAffhR!");
     // rest_account.account_config().await.unwrap();
-    rest_account.trade_orders_pending(OrdersPendingFilter{
-        inst_type: Some(InstType::Spot),
-        uly: None,
-        inst_family: None,
-        inst_id: None,
-        ord_type: None,
-        state: None,
-        after: None,
-        before: None,
-        limit: None,
-    }).await.unwrap();
+    // rest_account.trade_orders_pending(OrdersPendingFilter{
+    //     inst_type: Some(InstType::Spot),
+    //     uly: None,
+    //     inst_family: None,
+    //     inst_id: None,
+    //     ord_type: None,
+    //     state: None,
+    //     after: None,
+    //     before: None,
+    //     limit: None,
+    // }).await.unwrap();
     let account_obj = rest_account.start_websocket().await;
     account_obj.register(TestHandler{});
-    // account_obj.account_subscribe().await;
-    // account_obj.order_subscribe(InstType::Spot).await;
+    account_obj.account_subscribe().await;
+    account_obj.order_subscribe(InstType::Spot).await;
 
     tokio::time::sleep(Duration::from_secs(60)).await;
 }
