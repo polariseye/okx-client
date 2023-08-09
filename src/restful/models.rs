@@ -926,6 +926,7 @@ impl AccountConfig {
     }
 }
 
+#[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Copy, Clone)]
 pub enum ApiKeyPermission{
     ReadOnly,
     Trade,
