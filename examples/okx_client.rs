@@ -7,7 +7,7 @@ use okx_client::websocket::*;
 #[tokio::main]
 async fn main() {
     simple_logger::SimpleLogger::new()
-        .with_level(LevelFilter::Debug)
+        .with_level(LevelFilter::Trace)
         .with_module_level("tungstenite",LevelFilter::Error)
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
@@ -40,7 +40,7 @@ async fn account_test(){
     account_obj.account_subscribe().await;
     account_obj.order_subscribe(InstType::Spot).await;
 
-    tokio::time::sleep(Duration::from_secs(60)).await;
+    tokio::time::sleep(Duration::from_secs(60*1000)).await;
 }
 async fn pub_test(){
     let pub_sock = testnet_config().create_pub_client().start_websocket().await;

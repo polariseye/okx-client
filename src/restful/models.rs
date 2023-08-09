@@ -420,6 +420,8 @@ pub enum TradeSide {
 /// 持仓方向 在开平仓模式下必填，且仅可选择 long 或 short。 仅适用交割、永续。
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum PositionSide {
+    #[serde(rename="")]
+    None,
     #[serde(rename="long")]
     Long,
     #[serde(rename="short")]
@@ -808,6 +810,8 @@ pub struct AccountBalance {
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum ExecuteType{
+    #[serde(rename="")]
+    None,
     #[serde(rename="T")]
     Taker,
     #[serde(rename="M")]
