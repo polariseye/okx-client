@@ -425,7 +425,7 @@ pub enum PositionSide {
     #[serde(rename="short")]
     Short,
     #[serde(rename="net")]
-    net
+    Net
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
