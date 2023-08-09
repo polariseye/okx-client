@@ -307,11 +307,11 @@ pub struct TradeOrdersPending {
     pub acc_fill_sz: String,
 
     pub fill_px: String,
-    #[serde(rename = "tradeId", serialize_with="to_str",deserialize_with="from_str")]
-    pub trade_id: i64,
+    #[serde(rename = "tradeId", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
+    pub trade_id: Option<i64>,
     pub fill_sz: String,
-    #[serde(rename = "fillTime", serialize_with="to_str",deserialize_with="from_str")]
-    pub fill_time: i64,
+    #[serde(rename = "fillTime", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
+    pub fill_time: Option<i64>,
     pub avg_px: String,
     pub state: OrderState,
 
@@ -423,7 +423,9 @@ pub enum PositionSide {
     #[serde(rename="long")]
     Long,
     #[serde(rename="short")]
-    Short
+    Short,
+    #[serde(rename="net")]
+    net
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
@@ -456,6 +458,8 @@ pub enum OrderType {
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum StopMode {
+    #[serde(rename="")]
+    None,
     #[serde(rename="cancel_maker")]
     CancelMaker,
     #[serde(rename="cancel_taker")]
@@ -467,6 +471,8 @@ pub enum StopMode {
 /// 止盈触发价类型
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum TpTriggerPxType {
+    #[serde(rename="")]
+    None,
     // 最新价格
     #[serde(rename="last")]
     Last,
@@ -481,6 +487,8 @@ pub enum TpTriggerPxType {
 /// 一键借币类型
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, Eq, Ord, PartialOrd, PartialEq, Hash)]
 pub enum QuickMgnType{
+    #[serde(rename="")]
+    None,
     /// 手动
     #[serde(rename="manual")]
     Manual,
