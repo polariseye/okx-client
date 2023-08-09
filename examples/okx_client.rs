@@ -12,8 +12,8 @@ async fn main() {
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
     let pub_client = testnet_config().create_pub_client();
-    let insts = pub_client.public_instruments(InstType::Spot, None, None, None).await.unwrap();
-    println!("result:{:?}", &insts.data);
+    let insts = pub_client.public_instruments(InstType::Spot, Option::<String>::None, Option::<String>::None, Option::<String>::None).await.unwrap();
+    println!("result:{:?}", &insts);
     // pub_test().await;
 }
 

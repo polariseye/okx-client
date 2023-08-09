@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use crate::models::de_float_from_str;
 use crate::OkxError;
-use crate::utils::{from_str, to_str};
+use crate::utils::{from_str, to_str, to_opt_str, from_opt_str};
 
 ///////////////////
 /// // rest 通用模板
@@ -134,12 +134,12 @@ pub struct Instrument {
     pub stk: String,
     /// 上线日期
     /// Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "listTime", serialize_with="to_str",deserialize_with="from_str")]
-    pub list_time: i64,
+    #[serde(rename = "listTime", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
+    pub list_time: Option<i64>,
     /// 交割/行权日期，仅适用于交割 和 期权
     /// Unix时间戳的毫秒数格式，如 1597026383085
-    #[serde(rename = "expTime", serialize_with="to_str",deserialize_with="from_str")]
-    pub exp_time: i64,
+    #[serde(rename = "expTime", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
+    pub exp_time: Option<i64>,
     /// 该instId支持的最大杠杆倍数，不适用于币币、期权
     pub lever: String,
     /// 下单价格精度，如 0.0001
