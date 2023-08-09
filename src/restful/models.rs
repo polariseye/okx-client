@@ -861,11 +861,11 @@ pub struct AccountConfig {
     #[serde(rename = "greeksType")]
     pub greeks_type: GreeksType,
     /// 当前在平台上真实交易量的用户等级，例如 lv1
-    #[serde(serialize_with="to_str",deserialize_with="from_str")]
-    pub level: u32,
+    // #[serde(serialize_with="to_str",deserialize_with="from_str")]
+    pub level: Level,
     /// 特约用户的临时体验用户等级，例如 lv3
     #[serde(rename = "levelTmp")]
-    pub level_tmp: String,
+    pub level_tmp: Level,
     /// 衍生品的逐仓保证金划转模式
     /// automatic：开仓划转 autonomy：自主划转
     #[serde(rename = "ctIsoMode")]
@@ -924,6 +924,28 @@ impl AccountConfig {
     pub fn is_main_account(&self) -> bool {
         self.main_uid == self.uid
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash)]
+pub enum Level {
+    #[serde(rename="")]
+    None,
+    #[serde(rename="Lv1")]
+    Lv1,
+    #[serde(rename="Lv2")]
+    Lv2,
+    #[serde(rename="Lv3")]
+    Lv3,
+    #[serde(rename="Lv4")]
+    Lv4,
+    #[serde(rename="Lv5")]
+    Lv5,
+    #[serde(rename="Lv6")]
+    Lv6,
+    #[serde(rename="Lv7")]
+    Lv7,
+    #[serde(rename="Lv8")]
+    Lv8,
 }
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Hash, Copy, Clone)]

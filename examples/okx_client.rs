@@ -11,17 +11,20 @@ async fn main() {
         .with_module_level("tungstenite",LevelFilter::Error)
         .with_module_level("tokio_tungstenite",LevelFilter::Error).init().unwrap();
 
-    let pub_client = testnet_config().create_pub_client();
-    let insts = pub_client.public_instruments(InstType::Spot, Option::<String>::None, Option::<String>::None, Option::<String>::None).await.unwrap();
-    println!("result:{:?}", &insts);
-    // pub_test().await;
+    // let pub_client = testnet_config().create_pub_client();
+    // let insts = pub_client.public_instruments(InstType::Spot, Option::<String>::None, Option::<String>::None, Option::<String>::None).await.unwrap();
+    // println!("result:{:?}", &insts);
+
+    account_test().await;
 }
 
 async fn account_test(){
-    let account_obj = testnet_config().create_account_client(
+    let rest_account = testnet_config().create_account_client(
         "a462e3ed-6866-4ed1-b8e5-8d59126a2a51",
         "B03846A56AEC13A169E3E4C67F11895F",
-        "H7ZubBD9FAAffhR!").start_websocket().await;
+        "H7ZubBD9FAAffhR!");
+    rest_account.account_config().await.unwrap();
+    let account_obj = rest_account.start_websocket().await;
     account_obj.register(TestHandler{});
     account_obj.account_subscribe().await;
     account_obj.order_subscribe(InstType::Spot).await;
