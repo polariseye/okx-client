@@ -222,7 +222,7 @@ impl AccountWebsocket {
 #[async_trait]
 impl Handler for AccountWebsocket {
     async fn on_connected(&self) {
-        println!("connected");
+        // println!("connected");
         self.login().await;
 
         for item in self.handlers().values() {
@@ -231,7 +231,7 @@ impl Handler for AccountWebsocket {
     }
 
     async fn on_disconnected(&self) {
-        println!("disconnected");
+        // println!("disconnected");
         for item in self.handlers().values() {
             item.on_disconnected().await;
         }
