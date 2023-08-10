@@ -12,6 +12,7 @@ pub struct RestApi<T> {
     #[serde(serialize_with="to_str",deserialize_with="from_str")]
     pub code: i32,
     pub msg: String,
+    #[serde(default="Default::default")]
     pub data: Vec<T>,
 }
 
