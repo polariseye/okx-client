@@ -43,7 +43,9 @@ async fn account_test(){
     tokio::time::sleep(Duration::from_secs(60*1000)).await;
 }
 async fn pub_test(){
-    let pub_sock = testnet_config().create_pub_client().start_websocket().await;
+    let pub_rest_client = mainnet_config().create_pub_client();
+    pub_rest_client.public_instruments(InstType::Spot, Option::<String>::None, Option::<String>::None, Option::<String>::None).await.unwrap();
+    let pub_sock = pub_rest_client.start_websocket().await;
     pub_sock.register(TestHandler{});
     // pub_sock.trade_subscribe("DOT-USDT").await;
     // pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;

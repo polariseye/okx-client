@@ -73,7 +73,7 @@ pub struct OkxConfig {
 pub fn mainnet_config() -> OkxConfig{
     OkxConfig{
         testnet: false,
-        rest_domain: "https://www.okx.com/".to_string(),
+        rest_domain: "https://www.okx.com".to_string(),
         pub_websocket_domain: "wss://ws.okx.com:8443/ws/v5/public".to_string(),
         private_websocket_domain: "wss://ws.okx.com:8443/ws/v5/private".to_string(),
         business_domain: "wss://ws.okx.com:8443/ws/v5/business".to_string(),
