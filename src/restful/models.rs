@@ -213,6 +213,9 @@ pub enum InstrumentState {
     /// 测试中（测试产品，不可交易）
     #[serde(rename="test")]
     Test,
+    /// 已过期
+    #[serde(rename="expired")]
+    Expired,
 }
 
 // 获取所有产品行情信息
