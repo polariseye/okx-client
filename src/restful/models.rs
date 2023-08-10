@@ -142,6 +142,7 @@ pub struct Instrument {
     #[serde(rename = "expTime", serialize_with="to_opt_str",deserialize_with="from_opt_str")]
     pub exp_time: Option<i64>,
     /// 该instId支持的最大杠杆倍数，不适用于币币、期权
+    #[serde(default="Default::default")]
     pub lever: String,
     /// 下单价格精度，如 0.0001
     /// 对于期权来说，是梯度中的最小下单价格精度，如果想要获取期权价格梯度，请使用"获取期权价格梯度"接口

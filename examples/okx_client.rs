@@ -15,7 +15,7 @@ async fn main() {
     // let insts = pub_client.public_instruments(InstType::Spot, Option::<String>::None, Option::<String>::None, Option::<String>::None).await.unwrap();
     // println!("result:{:?}", &insts);
 
-    account_test().await;
+    pub_test().await;
 }
 
 async fn account_test(){
@@ -46,8 +46,9 @@ async fn pub_test(){
     let pub_sock = testnet_config().create_pub_client().start_websocket().await;
     pub_sock.register(TestHandler{});
     // pub_sock.trade_subscribe("DOT-USDT").await;
-    pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;
-    pub_sock.orderbook_merge().register(OrderBookTestHandler{});
+    // pub_sock.orderbook_subscribe("DOT-USDT", OrderBookSize::Default).await;
+    // pub_sock.orderbook_merge().register(OrderBookTestHandler{});
+    pub_sock.trade_symbol_change_subscribe(InstType::Spot);
 
     tokio::time::sleep(Duration::from_secs(60*10)).await;
 }
@@ -90,6 +91,10 @@ impl PublicHandler for TestHandler {
     async fn orderbook_event(&self,_arg: &OrderBookEventArg, _order_book_type: OrderBookType, _size: OrderBookSize, _events: &Vec<OrderBookEvent>) {
         // let event_str = serde_json::to_string(events).unwrap();
         // println!("orderbook_event:{}", event_str);
+    }
+    async fn instrument_event(&self, events: &Vec<Instrument>) {
+        let event_str = serde_json::to_string(events).unwrap();
+        println!("tradesymbol_event:{}", event_str);
     }
 
     async fn on_connected(&self) {
